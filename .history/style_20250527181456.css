@@ -1,0 +1,46 @@
+body {
+  font-family: sans-serif;
+  margin: 2rem;
+  text-align: center;
+}
+
+/* 1) Make the overall grid a vertical stack of rows */
+#grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 1rem;
+  align-items: center; /* center rows horizontally */
+}
+
+/* 2) Each row is itself a grid: [label][cell×16] */
+.grid-row {
+  display: grid;
+  grid-template-columns: 4.5rem repeat(16, 2rem);
+  gap: 2px;
+  align-items: center;
+}
+
+/* 3) Label column styling */
+.row-label {
+  text-align: right;
+  font-size: 0.9rem;
+  user-select: none;
+}
+
+/* 4) Your cell styles */
+.cell {
+  width: 2rem;
+  height: 2rem;
+  background: #222;
+  cursor: pointer;
+}
+.cell.active {
+  background: #4caf50;
+}
+
+/* 5) Play button */
+button {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+}

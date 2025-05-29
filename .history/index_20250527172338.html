@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>8-Bit Sequencer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="controls">
+    <select id="instrument-select">
+      <option value="square">Square</option>
+      <option value="triangle">Triangle</option>
+      <option value="noise">Noise</option>
+    </select>
+    <button id="play">▶️ Play/Pause</button>
+  </div>
+  <div id="params"></div>
+  <div id="grid"></div>
+  <script src="node_modules/tone/build/Tone.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Modular 8-Bit Sequencer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="controls">
+    <button id="play">▶️ Play</button>
+    <button id="clear">🧹 Clear</button>
+  </div>
+
+  <div id="grid"></div>
+
+  <!-- Tone.js as global, then our modules -->
+  <script src="node_modules/tone/build/Tone.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+/* ------------------------------
+   Retro 8-Bit Theme
+   ------------------------------ */
+
+/* Pixel-style font */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+body {
+  background: #111 url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAY') repeat;
+  color: #eee;
+  font-family: 'Press Start 2P', monospace;
+  margin: 1rem;
+  text-align: center;
+}
+
+/* Controls bar */
+#controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+#controls button,
+#controls input,
+#controls select {
+  background: #222;
+  border: 3px solid #555;
+  border-radius: 0;
+  padding: 0.5rem 1rem;
+  font-family: inherit;
+  color: #0f0;
+  text-shadow: 0 0 2px #0f0;
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+#controls button:hover,
+#controls input:hover,
+#controls select:hover {
+  background: #333;
+  border-color: #0f0;
+}
+
+/* Active control button */
+#controls button.active {
+  background: #0f0;
+  border-color: #0f0;
+  color: #000;
+  box-shadow: inset 0 0 5px #0f0;
+}
+
+/* Note picker */
+#note-picker-container {
+  margin-bottom: 1rem;
+}
+#note-picker-container select {
+  width: auto;
+  background: #222;
+  border: 3px solid #555;
+  color: #0f0;
+  text-shadow: 0 0 2px #0f0;
+}
+
+/* Grid container */
+#grid {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  box-sizing: border-box;
+  padding: 0 1rem;
+  margin: 0 auto;
+}
+
+/* Each row: dropdown + remove + slider + cells */
+.grid-row {
+  display: grid;
+  align-items: center;
+  gap: 0;               /* no gap between columns */
+}
+
+/* Make controls fill their grid cell */
+.instrument-select,
+.remove-row-btn,
+.volume-slider {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Instrument dropdown */
+.instrument-select {
+  background: #222;
+  border: 3px solid #555;
+  padding: 4px;
+  color: #0f0;
+  text-shadow: 0 0 2px #0f0;
+}
+
+/* Remove-row button */
+.remove-row-btn {
+  padding: 0;
+  font-size: 1rem;
+  line-height: 1;
+  background: #222;
+  border: 3px solid #555;
+  color: #0f0;
+  text-shadow: 0 0 2px #0f0;
+  cursor: pointer;
+}
+
+/* Volume slider */
+.volume-slider {
+  -webkit-appearance: none;
+  background: #222;
+  border: 2px solid #555;
+  height: 1.5rem;
+  margin: 0;
+}
+
+/* Sequencer cell */
+.cell {
+  width: 2rem;
+  height: 2rem;
+  background: #222;
+  border: 3px solid #555;
+  box-shadow: inset 0 0 0 1px #333;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  line-height: 1rem;
+  font-family: inherit;
+  color: #0f0;
+  text-shadow: 0 0 1px #0f0;
+  user-select: none;
+}
+
+/* Active cell */
+.cell.active {
+  background: #0f0;
+  border-color: #0f0;
+}
+
+/* Connected visuals */
+.cell.connected-left {
+  border-left-color: transparent;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.cell.connected-right {
+  border-right-color: transparent;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.cell.connected-left.connected-right {
+  border-radius: 0;
+}
+
+.cell:hover {
+  border-color: #0f0;
+}
+
+/* Add-row button */
+.add-row {
+  width: 2rem;
+  height: 2rem;
+  margin: 0.5rem auto 0;
+  background: #222;
+  border: 3px solid #555;
+  color: #0f0;
+  text-shadow: 0 0 2px #0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.add-row:hover {
+  background: #000;
+  border-color: #0f0;
+}
+
+/* Scrollbar styling for webkit */
+#grid::-webkit-scrollbar {
+  height: 8px;
+}
+#grid::-webkit-scrollbar-track {
+  background: #111;
+}
+#grid::-webkit-scrollbar-thumb {
+  background: #444;
+  border: 2px solid #222;
+  border-radius: 4px;
+}

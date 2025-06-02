@@ -16,29 +16,31 @@
     <button id="clear">🧹 Clear</button>
 
     <label for="steps-input">Steps:</label>
-    <input id="steps-input" type="number" min="1" value="16" style="width:4rem;">
+    <input id="steps-input" type="number" min="1" value="16">
 
     <label for="bpm-input">BPM:</label>
-    <input id="bpm-input" type="number" min="1" max="300" value="80" style="width:4rem;">
+    <input id="bpm-input" type="number" min="1" max="300" value="80">
 
     <!-- ───────────── New “Reset” Button ───────────── -->
     <button id="reset-btn">🔄 Reset</button>
   </div>
 
   <!-- =======================
-       NEW: Generate Prompt UI
+       UPDATED: Generate Prompt UI
        ======================= -->
-  <div id="generate-controls" style="margin-top: 1rem;">
-    <textarea
-      id="generate-prompt"
-      placeholder="Describe the type of 8-bit track you want (e.g. 'Upbeat dungeon boss theme')."
-      rows="2"
-      style="width: 80%; font-family: monospace; resize: vertical;"
-    ></textarea>
-    <button id="generate-btn" style="margin-left:0.5rem;">
-      🛠️ Generate 8-Bit Track
-    </button>
-    <span id="generate-status" style="margin-left:1rem; color: darkred;"></span>
+  <div id="generate-controls">
+    <!-- Status (now on its own line) -->
+    <span id="generate-status"></span>
+
+    <!-- Row holding textarea + button -->
+    <div id="generate-inputs">
+      <textarea
+        id="generate-prompt"
+        placeholder="Describe the type of 8-bit track you want (e.g. 'Upbeat dungeon boss theme')."
+        rows="2"
+      ></textarea>
+      <button id="generate-btn">🛠️ Generate 8-Bit Track</button>
+    </div>
   </div>
 
   <!-- =======================

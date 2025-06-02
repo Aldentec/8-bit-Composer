@@ -6,6 +6,7 @@ export let CHANNELS    = 0;
 export let gridState   = [];   // boolean on/off per [row][step]
 export let noteState   = [];   // note string per [row][step]
 export let volumeState = [];   // 0.0–1.0 per [row]
+export let muted = [];
 
 // drag/stretch state
 let isDragging    = false,
@@ -64,7 +65,7 @@ export function initGrid(containerId, instrumentTypes = [], steps = 16) {
     const rowEl = document.createElement('div');
     rowEl.className = 'grid-row';
     rowEl.style.gridTemplateColumns =
-      `6rem 2rem 4rem repeat(${STEPS}, 2rem)`;
+      `6rem 3rem 2rem 6rem repeat(${STEPS}, 2rem)`;
 
     // a) instrument dropdown
     const sel = document.createElement('select');
@@ -81,6 +82,23 @@ export function initGrid(containerId, instrumentTypes = [], steps = 16) {
       }));
     });
     rowEl.append(sel);
+
+    // a.5) mute button
+    const muteCell = document.createElement('div');
+    muteCell.className = 'mute-cell';
+
+    const muteBtn = document.createElement('button');
+    muteBtn.className = 'mute-btn';
+    muteBtn.textContent = muted[row] ? 'Unmute' : 'Mute';
+
+    muteBtn.addEventListener('click', () => {
+      muted[row] = !muted[row];
+      voiceRows[row].gainNode.gain.value = muted[row] ? 0 : volumeState[row];
+      muteBtn.textContent = muted[row] ? 'Unmute' : 'Mute';
+    });
+
+    muteCell.appendChild(muteBtn);
+    rowEl.append(muteCell);
 
     // b) remove-row button
     const rm = document.createElement('button');

@@ -81,16 +81,17 @@ export function createVoices(instrumentTypes) {
     // connect: synth → crusher → gain → speakers
     synth.chain(bitCrusher, gainNode);
 
-    // trigger must accept duration so stretched notes still work
     const trigger = (time, note, duration = '16n') => {
-      if (synth instanceof Tone.NoiseSynth) {
-        // NoiseSynth signature: (duration, time)
-        synth.triggerAttackRelease(duration, time);
-      } else {
-        // melodic & membrane: (note, duration, time)
-        synth.triggerAttackRelease(note, duration, time);
-      }
-    };
+    if (synth instanceof Tone.NoiseSynth) {
+      // NoiseSynth uses duration + time only
+      synth.triggerAttackRelease(duration, time);
+    } else {
+      // guard against null/undefined notes
+      if (!note || typeof note !== 'string') return;
+      synth.triggerAttackRelease(note, duration, time);
+    }
+  };
+
 
     return { trigger, gainNode };
   });

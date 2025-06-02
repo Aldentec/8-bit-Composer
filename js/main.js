@@ -6,17 +6,15 @@ import {
   gridState,
   noteState,
   INSTRUMENT_OPTIONS,
-  volumeState
+  volumeState  // 1D per-row volume from grid.js; do not treat as 2D
 } from './grid.js';
 import { createVoices }   from './voices.js';
 import { initSequencer }  from './sequencer.js';
 
-// ───────────────────────────────────────────────────────────────────────────────
-// 0) We need 'build' available to both initial setup and applyGeneratedComposition.
-//    So we declare it here in the outer scope, and assign it inside DOMContentLoaded.
-// ───────────────────────────────────────────────────────────────────────────────
-let build;            // function that draws/rebuilds the grid & sequencer
-let instrumentNames;  // current instruments array (kept in sync with channels)
+let build;                // function that draws/rebuilds the grid & sequencer
+let instrumentNames;      // current instruments array (kept in sync with channels)
+let muted = [];           // boolean array tracking mute state per row
+let trackVolume = [];     // per-row gain (0.0–1.0)
 
 // ───────────────────────────────────────────────────────────────────────────────
 // 1) Grab references to playback controls and grid container (once DOM exists)
@@ -43,43 +41,129 @@ build = (steps, bpm) => {
   // a) Draw/update the grid UI for the current instrumentNames & step count
   initGrid('grid', instrumentNames, steps);
 
-  // b) Create VoiceRows (synths + gainNodes) and extract trigger functions
+  // Initialize or resize muted & trackVolume arrays
+  muted       = instrumentNames.map((_, i) => muted[i] || false);
+  trackVolume = instrumentNames.map((_, i) => trackVolume[i] ?? 1.0);
+
+  // b) After grid is drawn, attach a MutationObserver to each cell so that
+  //    whenever Grid.js activates or deactivates it (via drag or click), we
+  //    update noteState and display the correct pitch or clear it.
+  const allCells = gridEl.querySelectorAll('[data-row][data-step]');
+  allCells.forEach(cell => {
+    const observer = new MutationObserver(mutations => {
+      mutations.forEach(m => {
+        if (m.attributeName === 'class') {
+          const row = parseInt(cell.dataset.row, 10);
+          const col = parseInt(cell.dataset.step, 10);
+          const inst = instrumentNames[row];
+
+          if (cell.classList.contains('active')) {
+            // When Grid.js turns it active, set state & text
+            gridState[row][col] = true;
+
+            let pitch;
+            if (inst.startsWith('drum-')) {
+              pitch = inst.split('drum-')[1];
+            } else if (inst.startsWith('noise-')) {
+              pitch = 'noise';
+            } else {
+              pitch = 'C4';
+            }
+
+            noteState[row][col] = pitch;
+            if (inst.startsWith('drum-') || inst.startsWith('noise-')) {
+              cell.textContent = 'C4';
+            } else {
+              cell.textContent = pitch;
+            }
+          } else {
+            // When Grid.js deactivates it, clear state & text
+            gridState[row][col] = false;
+            noteState[row][col] = null;
+            cell.textContent = '';
+          }
+        }
+      });
+    });
+    observer.observe(cell, { attributes: true });
+  });
+
+  // c) Create VoiceRows (synths + gainNodes) and extract trigger functions
   voiceRows = createVoices(instrumentNames);
   triggers  = voiceRows.map(r => r.trigger);
 
-  // c) Reset Tone.Transport completely
+  // Apply mute/volume to each voiceRow
+  voiceRows.forEach((vr, idx) => {
+    vr.gainNode.gain.value = muted[idx] ? 0 : trackVolume[idx];
+  });
+
+  // d) Reset Tone.Transport completely
   Tone.Transport.stop();
   Tone.Transport.cancel();
   Tone.Transport.position = 0;
   Tone.Transport.bpm.value = bpm;
 
-  // d) Schedule the sequencer to read from gridState/noteState
+  // e) Schedule the sequencer to read from gridState/noteState
   initSequencer(triggers, bpm);
 
-  // e) Reset play/pause/stop button states
+  // f) Reset play/pause/stop button states
   playBtn.disabled  = false;
   pauseBtn.disabled = true;
   stopBtn.disabled  = true;
 
-  // f) Attach existing volumeState values back onto each row’s GainNode
-  const sliders = document.querySelectorAll('.volume-slider');
-  sliders.forEach((slider, idx) => {
-    slider.value = volumeState[idx];
+  // g) Attach mute buttons and volume sliders for each row
+  const tableRows = gridEl.querySelectorAll('.grid-row');
+tableRows.forEach((tr, rowIndex) => {
+  const instrumentSelect = tr.querySelector('.instrument-select');
+  if (!instrumentSelect) return;
+
+  // Ensure mute-cell exists immediately after the instrument-select
+  let muteCell = tr.querySelector('.mute-cell');
+  if (!muteCell) {
+    muteCell = document.createElement('div');
+    muteCell.className = 'mute-cell';
+
+    const muteBtn = document.createElement('button');
+    muteBtn.className = 'mute-btn';
+    muteBtn.textContent = muted[rowIndex] ? 'Unmute' : 'Mute';
+    muteCell.appendChild(muteBtn);
+
+    instrumentSelect.insertAdjacentElement('afterend', muteCell);
+
+    muteBtn.addEventListener('click', () => {
+      muted[rowIndex] = !muted[rowIndex];
+      voiceRows[rowIndex].gainNode.gain.value = muted[rowIndex] ? 0 : trackVolume[rowIndex];
+      muteBtn.textContent = muted[rowIndex] ? 'Unmute' : 'Mute';
+    });
+  } else {
+    const muteBtn = muteCell.querySelector('button');
+    muteBtn.textContent = muted[rowIndex] ? 'Unmute' : 'Mute';
+    voiceRows[rowIndex].gainNode.gain.value = muted[rowIndex] ? 0 : trackVolume[rowIndex];
+  }
+
+  // Volume slider handling stays the same
+  const slider = tr.querySelector('input[type="range"]');
+  if (slider) {
+    slider.value = trackVolume[rowIndex];
     slider.oninput = e => {
       const v = parseFloat(e.target.value);
-      voiceRows[idx].gainNode.gain.value = v;
-      volumeState[idx] = v;
+      trackVolume[rowIndex] = v;
+      if (!muted[rowIndex]) {
+        voiceRows[rowIndex].gainNode.gain.value = v;
+      }
     };
-  });
+  }
+});
 };
 
 // ───────────────────────────────────────────────────────────────────────────────
 // 4) Once DOM is ready, do initial setup and wire controls
 // ───────────────────────────────────────────────────────────────────────────────
-
 document.addEventListener('DOMContentLoaded', () => {
-  // 4.1) Initial instrument rows (default to the first four INSTRUMENT_OPTIONS)
+  // 4.1) Initial instrument rows (default to first four)
   instrumentNames = INSTRUMENT_OPTIONS.slice(0, 4);
+  muted           = instrumentNames.map(() => false);
+  trackVolume     = instrumentNames.map(() => 1.0);
 
   // 4.2) Initial build with default steps (16) and default BPM (80)
   build(Number(stepsIn.value), Number(bpmIn.value));
@@ -147,58 +231,67 @@ document.addEventListener('DOMContentLoaded', () => {
   // 4.5) Add-row event: push a default instrument, then rebuild
   document.addEventListener('addRowClicked', () => {
     instrumentNames.push(INSTRUMENT_OPTIONS[0]);
+    muted.push(false);
+    trackVolume.push(1.0);
     build(+stepsIn.value, +bpmIn.value);
   });
 
   // 4.6) Remove-row event: splice out that index, then rebuild
   document.addEventListener('removeRowClicked', ({ detail: { row } }) => {
     instrumentNames.splice(row, 1);
+    muted.splice(row, 1);
+    trackVolume.splice(row, 1);
     build(+stepsIn.value, +bpmIn.value);
   });
 
   // 4.7) Instrument change event: update that row’s instrument, re-create voices, re-schedule
   document.addEventListener('instrumentChanged', ({ detail: { row, type } }) => {
     instrumentNames[row] = type;
-    // Re-create voices/triggers for the new instrument list
     voiceRows = createVoices(instrumentNames);
     triggers  = voiceRows.map(r => r.trigger);
 
-    // If transport was playing, preserve its position
     const wasPlaying = Tone.Transport.state === 'started';
     const pos        = Tone.Transport.position;
-
-    // Re-init sequencer on the new triggers
     Tone.Transport.stop();
     Tone.Transport.cancel();
     initSequencer(triggers, Number(bpmIn.value));
     if (wasPlaying) Tone.Transport.start(undefined, pos);
 
-    // Rewire only that row’s volume slider handler
-    const slider = document.querySelectorAll('.volume-slider')[row];
+    // After rebuild, reapply mute/volume for this row
+    voiceRows[row].gainNode.gain.value = muted[row] ? 0 : trackVolume[row];
+
+    // Update that row’s mute button and volume slider
+    const tableRows = gridEl.querySelectorAll('tr');
+    const tr        = tableRows[row];
+    const muteCell  = tr.querySelector('.mute-cell');
+    if (muteCell) {
+      const muteBtn = muteCell.querySelector('button');
+      muteBtn.textContent = muted[row] ? 'Unmute' : 'Mute';
+    }
+    const slider = tr.querySelector('input[type="range"]');
     if (slider) {
-      slider.oninput = e => {
-        const v = parseFloat(e.target.value);
-        voiceRows[row].gainNode.gain.value = v;
-        volumeState[row] = v;
-      };
+      slider.value = trackVolume[row];
     }
   });
 
   // ───────────────────────────────────────────────────────────────────────────────
-  // 5) Reset‐Button Integration
+  // 5) Reset-Button Integration
   // ───────────────────────────────────────────────────────────────────────────────
   const resetBtn = document.getElementById("reset-btn");
+  const generateStatusSpan = document.getElementById("generate-status");
+
   resetBtn.addEventListener("click", () => {
     instrumentNames = INSTRUMENT_OPTIONS.slice(0, 4);
+    muted           = instrumentNames.map(() => false);
+    trackVolume     = instrumentNames.map(() => 1.0);
 
     stepsIn.value = 16;
     bpmIn.value = 80;
     Tone.Transport.bpm.value = 80;
 
-    // Clear the imported arrays instead of reassigning them:
     gridState.length = 0;
     noteState.length = 0;
-    volumeState.length = 0;
+    volumeState.length = 0; // per-row array cleared
 
     build(16, 80);
 
@@ -207,80 +300,70 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ───────────────────────────────────────────────────────────────────────────────
-// 5) Bedrock “Generate 8-Bit Track” integration
-//    This code runs after the grid/sequencer setup above.
+// 6) Bedrock “Generate 8-Bit Track” integration (outside DOMContentLoaded)
 // ───────────────────────────────────────────────────────────────────────────────
-
-// 5.1) Grab references to the new UI elements (prompt textarea, generate button, status span)
 const generatePromptTextarea = document.getElementById("generate-prompt");
 const generateBtn            = document.getElementById("generate-btn");
 const generateStatusSpan     = document.getElementById("generate-status");
 
-// 5.2) applyGeneratedComposition: parses Bedrock JSON → populates instrumentNames, gridState, noteState, volumeState
 function applyGeneratedComposition(composition) {
   const { title, tempo, channels } = composition;
 
-  // 1) Update the BPM control to match the generated tempo
   const bpmControl = document.getElementById("bpm-input");
   bpmControl.value = tempo;
   Tone.Transport.bpm.value = tempo;
 
-  // 2) Determine the pattern length from channels[0] (they all share the same patternLength)
   const patternLength = channels[0].patternLength;
   const stepsControl  = document.getElementById("steps-input");
   stepsControl.value  = patternLength;
 
-  // 3) Sync instrumentNames to exactly match the returned channel names (in order)
-  //    Each channelObj.name should correspond to one of your synth types (e.g. "square1", "triangle", etc).
-  //    If you need to transform Bedrock’s names into your INSTRUMENT_OPTIONS, handle it here.
   instrumentNames = channels.map(ch => ch.name);
+  muted           = instrumentNames.map(() => false);
+  trackVolume     = instrumentNames.map(() => 1.0);
 
-  // 4) Rebuild the grid/voices with the new instruments & step count
   build(patternLength, tempo);
 
-  // 5) Overwrite gridState/noteState/volumeState based on the returned “notes” arrays
   channels.forEach((channelObj, rowIndex) => {
-    const { patternLength: len, notes } = channelObj;
+    const inst  = instrumentNames[rowIndex];
+    const notes = channelObj.notes;
 
     notes.forEach(noteObj => {
-      const step   = noteObj.step;      // 0..len-1
-      const pitch  = noteObj.pitch;     // e.g. "C4" or "kick"
-      const volume = noteObj.volume;    // 0.0–1.0
+      const s = noteObj.step;
+      const p = noteObj.pitch;
+      const v = noteObj.volume;
 
-      // Mark that cell in gridState and noteState/volumeState
-      gridState[rowIndex][step] = true;
-      noteState[rowIndex][step] = pitch;
-      volumeState[rowIndex]     = volume;
-
-      // Update the corresponding cell DOM element:
-      // Use a proper template literal to select `.cell[data-row="…"][data-step="…"]`
-      const selector = `.cell[data-row="${rowIndex}"][data-step="${step}"]`;
+      gridState[rowIndex][s]   = true;
+      noteState[rowIndex][s]   = p;
+      // Do NOT assign into volumeState[row][s]
+      const selector = `[data-row="${rowIndex}"][data-step="${s}"]`;
       const cellEl   = document.querySelector(selector);
       if (cellEl) {
         cellEl.classList.add("active");
-        cellEl.textContent = pitch;
+        if (inst.startsWith('drum-') || inst.startsWith('noise-')) {
+          cellEl.textContent = 'C4';
+        } else {
+          cellEl.textContent = p;
+        }
       }
     });
   });
 }
 
-// 5.3) Wire up the “Generate” button to call our local Bedrock endpoint
 generateBtn.addEventListener("click", async () => {
   const promptText = generatePromptTextarea.value.trim();
   if (!promptText) {
+    generateStatusSpan.style.color = 'crimson';
     generateStatusSpan.textContent = "⚠️ Please enter a prompt.";
     return;
   }
 
-  generateStatusSpan.style.color = "white";
-  generateStatusSpan.textContent = "⏳ Generating…";
+  const originalBtnText = generateBtn.textContent;
+  generateBtn.textContent = "Generating…";
+  generateBtn.disabled = true;
+  generateStatusSpan.textContent = "";
 
   try {
-    // Call our local Bedrock‐proxy server
-    const payload = {
-      prompt: promptText    
-    };
-
+    const payload  = { prompt: promptText };
     const response = await fetch("http://localhost:3000/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -289,18 +372,27 @@ generateBtn.addEventListener("click", async () => {
 
     if (!response.ok) {
       const err = await response.json();
-      throw new Error(err.error || "Unknown server error");
+      throw new Error(err.error || `Server returned ${response.status}`);
     }
 
     const compositionJson = await response.json();
     applyGeneratedComposition(compositionJson);
 
-    generateStatusSpan.style.color = "green";
-    generateStatusSpan.textContent = `✅ Generated "${compositionJson.title}"`;
-  }
-  catch (err) {
+    const fullTitle = compositionJson.title;
+    let statusTitle = fullTitle;
+    const inMatch = fullTitle.match(/^(.*) in (.+)$/i);
+    if (inMatch) {
+      statusTitle = `${inMatch[1]} - ${inMatch[2]}`;
+    }
+
+    generateStatusSpan.style.color = "var(--fg-color)";
+    generateStatusSpan.textContent = `✅ Generated "${statusTitle}"`;
+  } catch (err) {
     console.error("Error generating 8-bit track:", err);
-    generateStatusSpan.style.color = "darkred";
+    generateStatusSpan.style.color = "crimson";
     generateStatusSpan.textContent = `❌ ${err.message}`;
+  } finally {
+    generateBtn.textContent = originalBtnText;
+    generateBtn.disabled    = false;
   }
 });

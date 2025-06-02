@@ -2,7 +2,6 @@
 
 A retro-inspired music sequencer that lets you compose 8-bit style chiptunes on a grid-based interface. Includes AI-powered melody generation using AWS Bedrock and Claude.
 
----
 
 ## 🚀 Features
 
@@ -11,7 +10,6 @@ A retro-inspired music sequencer that lets you compose 8-bit style chiptunes on 
 - 🔉 Live playback using Web Audio API + Tone.js
 - 🤖 AI-powered music generation via prompt using Claude on AWS Bedrock
 
----
 
 ## 📦 Prerequisites
 
@@ -25,7 +23,6 @@ To run this app, you need:
 - Visual Studio Code with the **Live Server** extension installed:  
   https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer
 
----
 
 ## 🛠️ Setup & Running the Project
 
@@ -37,6 +34,7 @@ Follow these steps **exactly** to get everything working:
 git clone https://github.com/your-username/8bit-composer.git
 cd 8bit-composer
 ```
+---
 
 ### 🔐 Step 2 – Set up AWS CLI & credentials
 
@@ -57,6 +55,8 @@ Make sure your IAM user or role has the necessary Bedrock permissions:
 * ```bedrock:InvokeModelWithResponseStream``` (optional)
 
 🛑 You must request access to Claude via the [AWS Bedrock Console](https://us-west-2.console.aws.amazon.com/bedrock/home) before using the model.
+
+---
 
 ### 🔧 Step 3 – Run the Node.js backend
 
@@ -81,6 +81,8 @@ If everything is working correctly, you’ll see output like:
 🎶 Bedrock Runtime API listening on http://localhost:3000
 ```
 
+---
+
 ### 🌐 Step 4 – Run the frontend with Live Server
 
 The frontend is a static HTML/JS site that you can launch using the Live Server extension in VS Code.
@@ -92,6 +94,7 @@ The frontend is a static HTML/JS site that you can launch using the Live Server 
 
 You should see the full grid interface, ready for composing.
 
+---
 
 ### 🎼 Step 5 – Generate music using Claude
 

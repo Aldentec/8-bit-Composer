@@ -6,22 +6,47 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="controls">
-        <button id="play">▶️ Play</button>
-        <button id="stop">⏹️ Stop</button>
-        <button id="pause">⏸️ Pause</button>
-        <button id="clear">🧹 Clear</button>
+  <!-- =======================
+       Existing Controls
+       ======================= -->
+  <div id="controls">
+    <button id="play">▶️ Play</button>
+    <button id="stop">⏹️ Stop</button>
+    <button id="pause">⏸️ Pause</button>
+    <button id="clear">🧹 Clear</button>
 
-        <label for="steps-input">Steps:</label>
-        <input id="steps-input" type="number" min="1" value="16" style="width:4rem;">
+    <label for="steps-input">Steps:</label>
+    <input id="steps-input" type="number" min="1" value="16" style="width:4rem;">
 
-        <label for="bpm-input">BPM:</label>
-        <input id="bpm-input" type="number" min="1" max="300" value="120" style="width:4rem;">
-    </div>
+    <label for="bpm-input">BPM:</label>
+    <input id="bpm-input" type="number" min="1" max="300" value="80" style="width:4rem;">
 
+    <!-- ───────────── New “Reset” Button ───────────── -->
+    <button id="reset-btn">🔄 Reset</button>
+  </div>
+
+  <!-- =======================
+       NEW: Generate Prompt UI
+       ======================= -->
+  <div id="generate-controls" style="margin-top: 1rem;">
+    <textarea
+      id="generate-prompt"
+      placeholder="Describe the type of 8-bit track you want (e.g. 'Upbeat dungeon boss theme')."
+      rows="2"
+      style="width: 80%; font-family: monospace; resize: vertical;"
+    ></textarea>
+    <button id="generate-btn" style="margin-left:0.5rem;">
+      🛠️ Generate 8-Bit Track
+    </button>
+    <span id="generate-status" style="margin-left:1rem; color: darkred;"></span>
+  </div>
+
+  <!-- =======================
+       Your Grid Container
+       ======================= -->
   <div id="grid"></div>
 
-  <!-- Tone.js as global, then our modules -->
+  <!-- Tone.js and Modules -->
   <script src="node_modules/tone/build/Tone.js"></script>
   <script type="module" src="js/main.js"></script>
 </body>

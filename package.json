@@ -10,6 +10,11 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@aws-sdk/client-bedrock": "^3.821.0",
+    "ajv": "^8.17.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
     "tone": "^15.1.22"
   }
 }

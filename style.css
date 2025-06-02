@@ -215,3 +215,9 @@ body {
   border: 2px solid #222;
   border-radius: 4px;
 }
+
+/* isolated single cell: force all borders back */
+.cell.active:not(.connected-left):not(.connected-right) {
+  border: 3px solid #0f0;
+  border-radius: 4px;
+}

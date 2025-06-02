@@ -117,29 +117,28 @@ tableRows.forEach((tr, rowIndex) => {
   const instrumentSelect = tr.querySelector('.instrument-select');
   if (!instrumentSelect) return;
 
-  // Ensure mute-cell exists immediately after the instrument-select
   let muteCell = tr.querySelector('.mute-cell');
+  let muteBtn;
+
   if (!muteCell) {
     muteCell = document.createElement('div');
     muteCell.className = 'mute-cell';
-
-    const muteBtn = document.createElement('button');
+    muteBtn = document.createElement('button');
     muteBtn.className = 'mute-btn';
-    muteBtn.textContent = muted[rowIndex] ? 'Unmute' : 'Mute';
     muteCell.appendChild(muteBtn);
-
     instrumentSelect.insertAdjacentElement('afterend', muteCell);
-
-    muteBtn.addEventListener('click', () => {
-      muted[rowIndex] = !muted[rowIndex];
-      voiceRows[rowIndex].gainNode.gain.value = muted[rowIndex] ? 0 : trackVolume[rowIndex];
-      muteBtn.textContent = muted[rowIndex] ? 'Unmute' : 'Mute';
-    });
   } else {
-    const muteBtn = muteCell.querySelector('button');
-    muteBtn.textContent = muted[rowIndex] ? 'Unmute' : 'Mute';
-    voiceRows[rowIndex].gainNode.gain.value = muted[rowIndex] ? 0 : trackVolume[rowIndex];
+    muteBtn = muteCell.querySelector('button');
   }
+
+  // Always update text and rebind listener
+  muteBtn.textContent = muted[rowIndex] ? 'Unmute' : 'Mute';
+  muteBtn.onclick = () => {
+    muted[rowIndex] = !muted[rowIndex];
+    voiceRows[rowIndex].gainNode.gain.value = muted[rowIndex] ? 0 : trackVolume[rowIndex];
+    muteBtn.textContent = muted[rowIndex] ? 'Unmute' : 'Mute';
+  };
+
 
   // Volume slider handling stays the same
   const slider = tr.querySelector('input[type="range"]');

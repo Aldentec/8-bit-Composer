@@ -1,20 +1,21 @@
-// js/main.js
-
 import {
   initGrid,
   clearGrid,
   gridState,
   noteState,
   INSTRUMENT_OPTIONS,
-  volumeState  // 1D per-row volume from grid.js; do not treat as 2D
+  volumeState,
+  STEPS
 } from './grid.js';
 import { createVoices }   from './voices.js';
 import { initSequencer }  from './sequencer.js';
+import { exportAudio } from './audioExport.js';
 
 let build;                // function that draws/rebuilds the grid & sequencer
 let instrumentNames;      // current instruments array (kept in sync with channels)
 let muted = [];           // boolean array tracking mute state per row
 let trackVolume = [];     // per-row gain (0.0–1.0)
+let lastGeneratedTitle = "composition";
 
 // ───────────────────────────────────────────────────────────────────────────────
 // 1) Grab references to playback controls and grid container (once DOM exists)
@@ -23,15 +24,23 @@ const playBtn  = document.getElementById('play');
 const pauseBtn = document.getElementById('pause');
 const stopBtn  = document.getElementById('stop');
 const clearBtn = document.getElementById('clear');
+const exportBtn = document.getElementById('export');
+const loopBtn     = document.getElementById('loop-btn');
 const stepsIn  = document.getElementById('steps-input');
 const bpmIn    = document.getElementById('bpm-input');
 const gridEl   = document.getElementById('grid');
+const Tone = window.Tone;
+
+let loopEnabled   = false;
+
+exportBtn.textContent = 'Export WAV';
 
 // ───────────────────────────────────────────────────────────────────────────────
 // 2) Variables to hold our voices/triggers between rebuilds
 // ───────────────────────────────────────────────────────────────────────────────
 let voiceRows = [];  // Array of { trigger, gainNode }
 let triggers  = [];  // Array of trigger functions for Tone.Transport
+
 
 // ───────────────────────────────────────────────────────────────────────────────
 // 3) Define build(...) at the top level so applyGeneratedComposition can call it.
@@ -56,28 +65,24 @@ build = (steps, bpm) => {
           const row = parseInt(cell.dataset.row, 10);
           const col = parseInt(cell.dataset.step, 10);
           const inst = instrumentNames[row];
-
           if (cell.classList.contains('active')) {
-            // When Grid.js turns it active, set state & text
             gridState[row][col] = true;
 
-            let pitch;
-            if (inst.startsWith('drum-')) {
-              pitch = inst.split('drum-')[1];
-            } else if (inst.startsWith('noise-')) {
-              pitch = 'noise';
-            } else {
-              pitch = 'C4';
+            let pitch = noteState[row][col]; // Try to preserve what's already there
+
+            if (!pitch) {
+              if (inst.startsWith('drum-')) {
+                pitch = inst.split('drum-')[1];
+              } else if (inst.startsWith('noise-')) {
+                pitch = 'noise';
+              } else {
+                pitch = 'C4';
+              }
+              noteState[row][col] = pitch; // Only set it if not already set
             }
 
-            noteState[row][col] = pitch;
-            if (inst.startsWith('drum-') || inst.startsWith('noise-')) {
-              cell.textContent = 'C4';
-            } else {
-              cell.textContent = pitch;
-            }
+            cell.textContent = pitch;
           } else {
-            // When Grid.js deactivates it, clear state & text
             gridState[row][col] = false;
             noteState[row][col] = null;
             cell.textContent = '';
@@ -113,7 +118,7 @@ build = (steps, bpm) => {
 
   // g) Attach mute buttons and volume sliders for each row
   const tableRows = gridEl.querySelectorAll('.grid-row');
-tableRows.forEach((tr, rowIndex) => {
+  tableRows.forEach((tr, rowIndex) => {
   const instrumentSelect = tr.querySelector('.instrument-select');
   if (!instrumentSelect) return;
 
@@ -136,7 +141,19 @@ tableRows.forEach((tr, rowIndex) => {
   muteBtn.onclick = () => {
     muted[rowIndex] = !muted[rowIndex];
     voiceRows[rowIndex].gainNode.gain.value = muted[rowIndex] ? 0 : trackVolume[rowIndex];
-    muteBtn.textContent = muted[rowIndex] ? 'Unmute' : 'Mute';
+    // set up initial state
+    muteBtn.classList.toggle('muted', muted[rowIndex]);
+
+    muteBtn.onclick = () => {
+      // flip the flag
+      muted[rowIndex] = !muted[rowIndex];
+
+      // update the synth gain
+      voiceRows[rowIndex].gainNode.gain.value = muted[rowIndex] ? 0 : trackVolume[rowIndex];
+
+      // add/remove the CSS class so it turns red when muted
+      muteBtn.classList.toggle('muted', muted[rowIndex]);
+    };
   };
 
 
@@ -172,10 +189,20 @@ document.addEventListener('DOMContentLoaded', () => {
     await Tone.start();
     Tone.Transport.stop();
     Tone.Transport.position = 0;
+    Tone.Transport.bpm.value = Number(bpmIn.value);
+
+    if (loopEnabled) {
+      const bpm      = Number(bpmIn.value);
+      const steps    = Number(stepsIn.value);
+      const stepDur  = (60 / bpm) / 4;
+      Tone.Transport.loop      = true;
+      Tone.Transport.loopStart = 0;
+      Tone.Transport.loopEnd   = steps * stepDur;
+    } else {
+      Tone.Transport.loop = false;
+    }
+
     Tone.Transport.start();
-    playBtn.classList.add('active');
-    pauseBtn.classList.remove('active');
-    stopBtn.classList.remove('active');
     playBtn.disabled  = true;
     pauseBtn.disabled = false;
     stopBtn.disabled  = false;
@@ -195,6 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ─ Stop button ───────────────────────────────────────────────────────────────────
   stopBtn.addEventListener('click', () => {
     Tone.Transport.stop();
+    Tone.Transport.loop = false;   
     Tone.Transport.position = 0;
     stopBtn.classList.add('active');
     playBtn.classList.remove('active');
@@ -203,6 +231,14 @@ document.addEventListener('DOMContentLoaded', () => {
     pauseBtn.disabled = true;
     stopBtn.disabled  = true;
   });
+
+  // ─ Loop button ───────────────────────────────────────────────────────────────────
+  loopBtn.textContent = 'Loop: Off';
+  loopBtn.addEventListener('click', () => {
+    loopEnabled = !loopEnabled;
+    loopBtn.textContent = `Loop: ${loopEnabled ? 'On' : 'Off'}`;
+  });
+
 
   // ─ Clear grid button ─────────────────────────────────────────────────────────────
   clearBtn.addEventListener('click', () => {
@@ -226,6 +262,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const b = Math.max(1, Math.min(300, +bpmIn.value));
     Tone.Transport.bpm.value = b;
   });
+  
+  // 🔉 Export to MP3
+  exportBtn.addEventListener('click', async () => {
+    exportBtn.disabled    = true;
+    const oldLabel        = exportBtn.textContent;
+    exportBtn.textContent = 'Exporting…';
+
+    try {
+      await exportAudio({
+        gridState,
+        noteState,
+        instrumentNames,
+        STEPS:    Number(stepsIn.value),
+        bpmInput: Number(bpmIn.value),
+        lastGeneratedTitle  // make sure you have this variable in scope
+      });
+    } catch (err) {
+      console.error('Export failed:', err);
+    } finally {
+      exportBtn.textContent = oldLabel;
+      exportBtn.disabled    = false;
+    }
+  });
 
   // 4.5) Add-row event: push a default instrument, then rebuild
   document.addEventListener('addRowClicked', () => {
@@ -246,8 +305,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // 4.7) Instrument change event: update that row’s instrument, re-create voices, re-schedule
   document.addEventListener('instrumentChanged', ({ detail: { row, type } }) => {
     instrumentNames[row] = type;
-    voiceRows = createVoices(instrumentNames);
-    triggers  = voiceRows.map(r => r.trigger);
+    voiceRows = createVoices(instrumentNames); // ✅ overwrite the global array
+    voiceRows.forEach((vr, idx) => {
+      const gain = muted[idx] ? 0 : trackVolume[idx] ?? 1.0;
+      vr.gainNode.gain.setValueAtTime(gain, 0);
+    });
+    triggers = voiceRows.map(r => r.trigger); // ✅ match the new voices
 
     const wasPlaying = Tone.Transport.state === 'started';
     const pos        = Tone.Transport.position;
@@ -260,8 +323,8 @@ document.addEventListener('DOMContentLoaded', () => {
     voiceRows[row].gainNode.gain.value = muted[row] ? 0 : trackVolume[row];
 
     // Update that row’s mute button and volume slider
-    const tableRows = gridEl.querySelectorAll('tr');
-    const tr        = tableRows[row];
+    const tableRows = gridEl.querySelectorAll('.grid-row');
+    const tr = tableRows[row];
     const muteCell  = tr.querySelector('.mute-cell');
     if (muteCell) {
       const muteBtn = muteCell.querySelector('button');
@@ -307,6 +370,8 @@ const generateStatusSpan     = document.getElementById("generate-status");
 
 function applyGeneratedComposition(composition) {
   const { title, tempo, channels } = composition;
+  
+  lastGeneratedTitle = title || "composition";
 
   const bpmControl = document.getElementById("bpm-input");
   bpmControl.value = tempo;
@@ -363,7 +428,7 @@ generateBtn.addEventListener("click", async () => {
 
   try {
     const payload  = { prompt: promptText };
-    const response = await fetch("http://localhost:3000/generate", {
+    const response = await fetch("http://localhost:4000/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)

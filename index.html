@@ -13,7 +13,9 @@
     <button id="play">▶️ Play</button>
     <button id="stop">⏹️ Stop</button>
     <button id="pause">⏸️ Pause</button>
+    <button id="loop-btn">Loop: Off</button>
     <button id="clear">🧹 Clear</button>
+    <button id="reset-btn">🔄 Reset</button>
 
     <label for="steps-input">Steps:</label>
     <input id="steps-input" type="number" min="1" value="16">
@@ -21,8 +23,8 @@
     <label for="bpm-input">BPM:</label>
     <input id="bpm-input" type="number" min="1" max="300" value="80">
 
-    <!-- ───────────── New “Reset” Button ───────────── -->
-    <button id="reset-btn">🔄 Reset</button>
+    <button id="export">Export WAV</button>
+
   </div>
 
   <!-- =======================
@@ -49,7 +51,9 @@
   <div id="grid"></div>
 
   <!-- Tone.js and Modules -->
-  <script src="node_modules/tone/build/Tone.js"></script>
+ <!-- Load Tone.js BEFORE your code -->
+  <script src="https://cdn.jsdelivr.net/npm/tone@latest/build/Tone.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.0/lame.min.js"></script>
   <script type="module" src="js/main.js"></script>
 </body>
 </html>

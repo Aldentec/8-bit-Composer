@@ -6,7 +6,7 @@ export let CHANNELS    = 0;
 export let gridState   = [];   // boolean on/off per [row][step]
 export let noteState   = [];   // note string per [row][step]
 export let volumeState = [];   // 0.0–1.0 per [row]
-export let muted = [];
+export let muted       = [];
 
 // drag/stretch state
 let isDragging    = false,
@@ -15,11 +15,14 @@ let isDragging    = false,
     dragEnd       = null,
     dragOccurred  = false;
 
-/** All possible instruments */
+/** All possible instruments (now including PluckSynth, DuoSynth, Sampler) */
 export const INSTRUMENT_OPTIONS = [
   'square','triangle','sawtooth','pulse25','pulse50','pulse75',
-  'fmsynth','amsynth','metal','membrane','noise-white','noise-pink',
-  'drum-kick','drum-snare','drum-tom','drum-hat'
+  'fmsynth','amsynth','metal',
+  'membrane','noise-white','noise-pink',
+  'drum-kick','drum-snare','drum-tom','drum-hat',
+  // new additions:
+  'pluck','duosynth','sampler'
 ];
 
 /**
@@ -35,12 +38,13 @@ export function initGrid(containerId, instrumentTypes = [], steps = 16) {
 
   gridState   = Array.from({ length: CHANNELS }, (_, r) =>
                   Array.from({ length: STEPS }, (_, c) =>
-                    r<oldR && c<oldC ? oldG[r][c] : false ));
+                    r < oldR && c < oldC ? oldG[r][c] : false ));
   noteState   = Array.from({ length: CHANNELS }, (_, r) =>
                   Array.from({ length: STEPS }, (_, c) =>
-                    r<oldR && c<oldC ? oldN[r][c] : 'C4' ));
+                    r < oldR && c < oldC ? oldN[r][c] : 'C4' ));
   volumeState = Array.from({ length: CHANNELS }, (_, r) =>
-                  r<oldV.length ? oldV[r] : 0.8 );
+                  r < oldV.length ? oldV[r] : 0.8 );
+  muted       = Array.from({ length: CHANNELS }, () => false);
 
   const container = document.getElementById(containerId);
   container.innerHTML = '';
@@ -128,9 +132,9 @@ export function initGrid(containerId, instrumentTypes = [], steps = 16) {
     // d) sequencer cells
     for (let step = 0; step < STEPS; step++) {
       const cell = document.createElement('div');
-      cell.className            = 'cell';
-      cell.dataset.row          = row;
-      cell.dataset.step         = step;
+      cell.className    = 'cell';
+      cell.dataset.row  = row;
+      cell.dataset.step = step;
       if (gridState[row][step]) {
         cell.classList.add('active');
         cell.textContent = noteState[row][step];

@@ -131,6 +131,26 @@ document.addEventListener('DOMContentLoaded', () => {
     initControls();
     controls = getControls();
 
+    const match = window.location.pathname.match(/\/share\/([a-f0-9\-]{36})/);
+
+    if (match) {
+      const id = match[1];
+      const url = `https://8bitcomposer-shared.s3-us-west-2.amazonaws.com/${id}.json`;
+
+      fetch(url)
+        .then(res => {
+          if (!res.ok) throw new Error('Composition not found.');
+          return res.json();
+        })
+        .then(data => {
+          applyComposition(data);
+        })
+        .catch(err => {
+          console.error(err);
+          alert('Failed to load shared composition.');
+        });
+    }
+
     // 1) initial state
     instrumentNames = INSTRUMENT_OPTIONS.slice(0,4);
     muted           = instrumentNames.map(() => false);
@@ -203,6 +223,34 @@ document.addEventListener('DOMContentLoaded', () => {
         );
         persistState();
     });
+
+    // Share button status
+    document.getElementById('share-btn').addEventListener('click', async () => {
+      const statusEl = document.getElementById('share-status');
+      statusEl.textContent = '⏳ Uploading composition...';
+
+      try {
+        const composition = serializeGridToJSON();
+
+        const response = await fetch('https://egght2t2zl.execute-api.us-west-2.amazonaws.com/test/share', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ composition }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) throw new Error(data.message || 'Failed to share');
+
+        const shareUrl = data.shareUrl;
+
+        statusEl.innerHTML = `✅ Shareable link: <a href="${shareUrl}" class="underline text-accent" target="_blank">${shareUrl}</a>`;
+        await navigator.clipboard.writeText(shareUrl);
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = '❌ Failed to share composition.';
+      }
+    });
     
 
   // **wire up reset button** 👇
@@ -228,6 +276,28 @@ document.addEventListener('DOMContentLoaded', () => {
     
     
     return;
+  });
+
+   document.getElementById('share-btn').addEventListener('click', async () => {
+    try {
+      const composition = serializeGridToJSON();
+
+      const response = await fetch('https://egght2t2zl.execute-api.us-west-2.amazonaws.com/test/share', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ composition }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.message || 'Failed to share');
+
+      const shareUrl = data.shareUrl;
+      await navigator.clipboard.writeText(shareUrl);
+    } catch (err) {
+      console.error(err);
+      alert('❌ Failed to share composition.');
+    }
   });
   
 

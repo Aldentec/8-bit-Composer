@@ -49,13 +49,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 
   <!-- Your existing styles (if any) -->
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body class="bg-bg text-fg font-pixel p-4">
 
   <div id="navbar"></div>
   <script>
-    fetch("navbar.html")
+    fetch("/navbar.html")
       .then(res => res.text())
       .then(html => {
         document.getElementById("navbar").innerHTML = html;
@@ -86,6 +86,7 @@
     <button id="clear"    title="Clear Notes"><i class="fa-solid fa-broom"></i></button>
     <button id="reset-btn" title="Fresh Slate"><i class="fa-solid fa-rotate-right"></i></button>
     <button id="export" title="Export to WAV"><i class="fas fa-file-export"></i></button>
+    <button id="share-btn" title="Share Composition"><i class="fas fa-share-alt"></i></button>
     <button id="help-btn" title="Help">?</button>
 
     <!-- Steps wrapper -->
@@ -114,6 +115,10 @@
         class="w-full bg-control border-4 border-cell-border text-fg text-center"
       />
     </div>
+  </div>
+
+  <div id="share-status"
+     class="w-4/5 max-w-[1200px] mx-auto mb-4 text-[0.65rem] text-center text-fg font-pixel min-h-[1.25rem]">
   </div>
 
   <!-- Generate Prompt UI -->
@@ -190,6 +195,6 @@
   <!-- Tone.js & Your Script -->
   <script src="https://cdn.jsdelivr.net/npm/tone@latest/build/Tone.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.0/lame.min.js"></script>
-  <script type="module" src="js/app.js"></script>
+  <script type="module" src="/js/app.js"></script>
 </body>
 </html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Contact – 8-Bit Composer</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg:    '#080808',
+            fg:    '#0f0',
+            control: '#222',
+            accent:  '#0f0',
+            'cell-border': '#555',
+          },
+          fontFamily: {
+            pixel: ["'Press Start 2P'", 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-bg text-fg font-pixel text-xs p-4">
+
+  <div id="navbar"></div>
+  <script>
+    fetch("navbar.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("navbar").innerHTML = html;
+
+        const toggle = document.getElementById("nav-toggle");
+        const menu = document.getElementById("nav-menu");
+        toggle?.addEventListener("click", () => {
+          menu?.classList.toggle("hidden");
+        });
+      })
+      .catch(err => console.error("Failed to load navbar:", err));
+  </script>
+
+  <!-- Main Content -->
+  <main class="max-w-[900px] mx-auto mt-10 space-y-6 leading-relaxed">
+    <h1 class="text-accent text-base mb-4">Contact</h1>
+
+    <p>
+      Got feedback, a bug to report, or just want to say hey? Drop me a message below.
+    </p>
+
+    <form id="contact-form" class="flex flex-col gap-4 text-[0.65rem]">
+        <div>
+            <label for="name" class="block mb-1">Your Name</label>
+            <input
+                type="text"
+                id="name"
+                name="name"
+                required
+                class="w-full p-2 bg-control border-4 border-cell-border text-fg"
+            />
+        </div>
+      <div>
+        <label for="email" class="block mb-1">Your Email</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          required
+          class="w-full p-2 bg-control border-4 border-cell-border text-fg"
+        />
+      </div>
+
+      <div>
+        <label for="message" class="block mb-1">Message</label>
+        <textarea
+          id="message"
+          name="message"
+          rows="5"
+          required
+          class="w-full p-2 bg-control border-4 border-cell-border text-fg resize-y"
+        ></textarea>
+      </div>
+
+      <button
+        type="submit"
+        class="self-start bg-control border-4 border-accent text-fg py-2 px-4 hover:bg-accent hover:text-bg transition"
+      >
+        Send Message
+      </button>
+
+      <p id="form-status" class="text-accent"></p>
+    </form>
+  </main>
+
+  <script>
+    const form = document.getElementById("contact-form");
+    const statusText = document.getElementById("form-status");
+
+    form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const name = document.getElementById("name").value;
+        const email = document.getElementById("email").value;
+        const message = document.getElementById("message").value;
+
+        statusText.textContent = "Sending...";
+
+        try {
+        const res = await fetch("https://egght2t2zl.execute-api.us-west-2.amazonaws.com/test/contact", {
+            method: "POST",
+            headers: {
+            "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+            name,
+            email,
+            message
+            })
+        });
+
+        if (res.ok) {
+            statusText.textContent = "Thanks! Your message has been sent.";
+            form.reset();
+        } else {
+            const err = await res.json();
+            console.error("Server error:", err);
+            statusText.textContent = "Oops! Something went wrong.";
+        }
+        } catch (err) {
+        console.error("Network error:", err);
+        statusText.textContent = "Failed to send. Please try again later.";
+        }
+    });
+    </script>
+
+</body>
+</html>

@@ -23,12 +23,6 @@ body {
   background: var(--bg-color);
   color: var(--fg-color);
   font-family: var(--font-family);
-  margin: 0;
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  box-sizing: border-box;
 }
 
 #sequencer-container {
@@ -51,37 +45,89 @@ h1, .title {
 }
 
 #controls {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 1rem;
   background: var(--control-bg);
   border: 3px solid var(--accent-color);
-  padding: 0.5rem;
-  border-radius: 6px;
 }
 
+/* Keep your pixelated buttons/inputs/selects */
 #controls button,
 #controls input,
 #controls select {
   background: var(--control-bg);
   border: 3px solid var(--cell-border);
-  padding: 0.5rem 1rem;
-  font-family: inherit;
   color: var(--fg-color);
   cursor: pointer;
   border-radius: 4px;
 }
 
-.add-row, .remove-row-btn {
-  width: 2rem;
-  height: 2rem;
+/* Bigger uniform control buttons */
+#controls button {
+  width: 3.5rem;
+  height: 3.5rem;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--control-bg);
+  border: 3px solid var(--cell-border);
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 1.5rem;    /* increase icon size proportionally */
+  color: var(--fg-color);
+  cursor: pointer;
+}
+
+#controls button:hover {
+  border-color: var(--accent-color);
+}
+
+/* Medium screens: fill more width and shrink controls a bit */
+@media (max-width: 600px) {
+  #controls {
+    width: 90%;
+  }
+  #controls button,
+  #controls input,
+  #controls select {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+  }
+}
+
+/* Small screens: tighter grid cells */
+@media (max-width: 400px) {
+  #controls {
+    grid-template-columns: repeat(auto-fit, minmax(3rem, 1fr));
+  }
+  #controls button,
+  #controls input,
+  #controls select {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.6rem;
+  }
+}
+
+.remove-row-btn {
+  width: 2.5rem;
+  height: 2.5rem;
   background: var(--control-bg);
   border: 3px solid var(--cell-border);
   color: var(--fg-color);
   cursor: pointer;
   border-radius: 4px;
+
+  display: flex;              /* centers the X */
+  align-items: center;
+  justify-content: center;
+
+  padding: 0.25rem;           /* gives some internal space */
+  font-size: 1.1rem;          /* scale X appropriately */
+  line-height: 1;
+}
+
+.add-row {
+  font-size: 20px;
+  font-weight: bold;
 }
 
 #grid {
@@ -94,7 +140,7 @@ h1, .title {
 }
 
 .grid-row {
-  display: grid;
+  display: flex;
   grid-template-columns:
     var(--label-width)   /* instrument select */
     3rem                 /* mute button */
@@ -106,8 +152,34 @@ h1, .title {
   width: max-content; /* prevent wrapping */
 }
 
+.notes-wrapper {
+  /* flex: 1 if you want it to take remaining space */
+  flex: 1;
+  overflow-x: auto;
+}
+
+.row-controls {
+  position: sticky;
+  left: 0;
+  background: var(--control-bg);
+  z-index: 10;
+  border-right: 3px solid var(--cell-border);
+}
+
+.notes-wrapper .cell {
+  flex-shrink: 0;
+}
+
+/* optional: give .notes-wrapper its own scrollbar style */
+.notes-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+
+
 .instrument-select {
-  width: var(--label-width);
+  width: auto;
+  min-width: 8rem;
+  padding-right: 2rem; /* give space for dropdown arrow */
   padding: 0.25rem;
   font-size: 0.7rem;
   background: var(--control-bg);
@@ -124,19 +196,32 @@ h1, .title {
 }
 
 .mute-btn {
-  padding: 0.25rem;
-  width: 100%;
+  width: 2rem;
   height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: var(--control-bg);
   border: 3px solid var(--cell-border);
-  color: var(--fg-color);
-  font-family: inherit;
-  font-size: 0.6rem;
-  cursor: pointer;
   border-radius: 4px;
-  box-sizing: border-box;
+  cursor: pointer;
+  padding: 15px; /* Ensures exact size */
 }
 
+.mute-btn::before {
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  content: "\f028"; /* fa-volume */
+  font-size: 1rem;
+  color: var(--fg-color);
+  display: inline-block;
+  width: 1em;        /* Ensures glyph takes consistent space */
+  text-align: center;
+}
+
+.mute-btn.muted::before {
+  content: "\f6a9"; /* fa-volume-slash */
+}
 
 .volume-slider {
   width: 3.5rem; /* Adjusted fixed width */
@@ -144,8 +229,8 @@ h1, .title {
 }
 
 .cell {
-  width: var(--cell-size);
-  height: var(--cell-size);
+  width: 2rem;
+  height: 2rem;
   background: var(--cell-bg);
   border: 3px solid var(--cell-border);
   display: flex;
@@ -160,6 +245,10 @@ h1, .title {
   background: var(--accent-color);
   border-color: var(--cell-border-active);
   color: #111;
+}
+
+.cell.current-step {
+  background-color: rgba(255,255,255,0.2);
 }
 
 /* Scrollbar styling */
@@ -259,4 +348,76 @@ h1, .title {
 .mute-btn.muted {
   background-color: crimson;
   color: #111;
+}
+
+.cell.current-step {
+  background-color: rgba(255,255,255,0.2);
+  /* or whatever highlight color works for you */
+}
+
+/* Generate-Prompt UI coloring, but layout handled by Tailwind */
+#generate-controls,
+#generate-prompt,
+#generate-btn {
+  background: var(--cell-bg);
+  border: 3px solid var(--cell-border);
+  color: var(--fg-color);
+  font-family: var(--font-family);
+}
+
+#loop-btn.active {
+  border-color: var(--accent-color); /* your green */
+  /* optionally also tint the icon: */
+}
+#loop-btn.active i {
+  color: var(--accent-color);
+}
+
+.modal {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  z-index: 10;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.5);
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background-color: #2e2e2e;
+  padding: 1.5em;
+  border-radius: 10px;
+  max-width: 400px;
+  box-shadow: 0 0 10px #000;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+#help-modal li {
+  letter-spacing: 3px;
+}
+
+#help-modal ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+#help-modal li::before {
+  content: '♪';
+  color: #0f0;
+  font-weight: bold;
+  display: inline-block;
+  width: 1em;
+  margin-left: -1em;
+}
+
+.close {
+  float: right;
+  font-size: 1.2em;
+  cursor: pointer;
 }

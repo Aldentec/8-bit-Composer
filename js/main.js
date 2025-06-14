@@ -32,8 +32,7 @@ const gridEl   = document.getElementById('grid');
 const Tone = window.Tone;
 
 let loopEnabled   = false;
-
-exportBtn.textContent = 'Export WAV';
+let stopScheduleId = null;
 
 // ───────────────────────────────────────────────────────────────────────────────
 // 2) Variables to hold our voices/triggers between rebuilds
@@ -187,23 +186,39 @@ document.addEventListener('DOMContentLoaded', () => {
   // ─ Play button ───────────────────────────────────────────────────────────────────
   playBtn.addEventListener('click', async () => {
     await Tone.start();
+
+    // 1) reset transport & clear any old stop
     Tone.Transport.stop();
+    if (stopScheduleId !== null) {
+      Tone.Transport.clear(stopScheduleId);
+      stopScheduleId = null;
+    }
     Tone.Transport.position = 0;
-    Tone.Transport.bpm.value = Number(bpmIn.value);
+    const bpm   = Number(bpmIn.value);
+    const steps = Number(stepsIn.value);
+    Tone.Transport.bpm.value = bpm;
+
+    // 2) compute 16th-note duration
+    const stepDur = (60 / bpm) / 4;  // in seconds
 
     if (loopEnabled) {
-      const bpm      = Number(bpmIn.value);
-      const steps    = Number(stepsIn.value);
-      const stepDur  = (60 / bpm) / 4;
+      // enable infinite looping
       Tone.Transport.loop      = true;
       Tone.Transport.loopStart = 0;
       Tone.Transport.loopEnd   = steps * stepDur;
     } else {
+      // disable looping & schedule a one-off stop just before the next loop
       Tone.Transport.loop = false;
+      const loopEnd    = steps * stepDur;     // time of next step0
+      const stopAt     = Math.max(loopEnd - 0.001, 0); // minus 1 ms
+      stopScheduleId   = Tone.Transport.scheduleOnce(time => {
+        Tone.Transport.stop(time);
+      }, stopAt);
     }
 
+    // 3) kick off playback
     Tone.Transport.start();
-    playBtn.disabled  = true;
+    playBtn.disabled  = false;
     pauseBtn.disabled = false;
     stopBtn.disabled  = false;
   });
@@ -233,12 +248,13 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ─ Loop button ───────────────────────────────────────────────────────────────────
-  loopBtn.textContent = 'Loop: Off';
   loopBtn.addEventListener('click', () => {
     loopEnabled = !loopEnabled;
-    loopBtn.textContent = `Loop: ${loopEnabled ? 'On' : 'Off'}`;
+    loopBtn.classList.toggle('active', loopEnabled);
+    // Optionally swap the icon:
+    loopBtn.querySelector('i').classList.toggle('fa-sync', !loopEnabled);
+    loopBtn.querySelector('i').classList.toggle('fa-sync-alt', loopEnabled);
   });
-
 
   // ─ Clear grid button ─────────────────────────────────────────────────────────────
   clearBtn.addEventListener('click', () => {

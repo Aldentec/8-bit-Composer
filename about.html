@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>About – 8-Bit Composer</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg:    '#080808',
+            fg:    '#0f0',
+            control: '#222',
+            accent:  '#0f0',
+            'cell-border': '#555',
+          },
+          fontFamily: {
+            pixel: ["'Press Start 2P'", 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-bg text-fg font-pixel text-xs p-4">
+
+  <div id="navbar"></div>
+  <script>
+    fetch("navbar.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("navbar").innerHTML = html;
+
+        const toggle = document.getElementById("nav-toggle");
+        const menu = document.getElementById("nav-menu");
+        toggle?.addEventListener("click", () => {
+          menu?.classList.toggle("hidden");
+        });
+      })
+      .catch(err => console.error("Failed to load navbar:", err));
+  </script>
+
+  <!-- Main Content -->
+  <main class="max-w-[900px] mx-auto mt-10 space-y-6 leading-relaxed">
+    <h1 class="text-accent text-base mb-4">About 8-Bit Composer</h1>
+
+    <p>
+      Hey! I’m <strong>Dorian Smith</strong>, a professional full-stack developer with a love for retro games and chiptune music.
+    </p>
+
+    <p>
+      I originally built <strong>8-Bit Composer</strong> to scratch my own itch — I was working on a retro-style game and needed an easy way to create authentic 8-bit music, right in the browser. Most tools I found were either overly complex or lacked that simple, grid-based workflow I wanted.
+    </p>
+
+    <p>
+      So I built this: a web-based step sequencer for making 8-bit style tunes using classic synths and noise channels. You can compose by hand or describe what you want and let the AI help out — it uses Claude via AWS Bedrock for music generation.
+    </p>
+
+    <p>
+      My goal is to keep things lightweight, accessible, and fun for anyone making retro-inspired games or music. Whether you're a game dev, a musician, or just someone messing around — I hope you find it useful.
+    </p>
+
+    <p>
+      Thanks for checking it out!
+    </p>
+  </main>
+</body>
+</html>

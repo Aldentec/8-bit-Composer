@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>8-Bit Composer</title>
 
-  <script src="https://cdn.tailwindcss.com"></script>
+   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     // now tailwind is defined
     tailwind.config = {
@@ -28,18 +28,6 @@
     }
   </script>
 
-  
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-3DLZRJN22L"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'G-3DLZRJN22L');
-  </script>
-
-
   <link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -52,24 +40,6 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-bg text-fg font-pixel p-4">
-
-  <div id="navbar"></div>
-  <script>
-    fetch("navbar.html")
-      .then(res => res.text())
-      .then(html => {
-        document.getElementById("navbar").innerHTML = html;
-
-        // ⬇️ Attach event handler after it's been injected
-        const toggle = document.getElementById("nav-toggle");
-        const menu = document.getElementById("nav-menu");
-
-        toggle?.addEventListener("click", () => {
-          menu?.classList.toggle("hidden");
-        });
-      })
-      .catch(err => console.error("Failed to load navbar:", err));
-  </script>
 
   <!-- Controls -->
   <div
@@ -86,7 +56,6 @@
     <button id="clear"    title="Clear Notes"><i class="fa-solid fa-broom"></i></button>
     <button id="reset-btn" title="Fresh Slate"><i class="fa-solid fa-rotate-right"></i></button>
     <button id="export" title="Export to WAV"><i class="fas fa-file-export"></i></button>
-    <button id="help-btn" title="Help">?</button>
 
     <!-- Steps wrapper -->
     <div class="flex flex-col items-center gap-1">
@@ -135,57 +104,8 @@
     </div>
   </div>
 
-  <!-- Help Modal -->
-  <div
-    id="help-modal"
-    class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50"
-  >
-    <div class="bg-control border-4 border-accent text-fg font-pixel p-6 rounded-lg w-[90%] max-w-lg relative shadow-lg">
-      <!-- Close Button -->
-      <button
-        id="close-help"
-        class="absolute top-3 right-4 text-fg text-xl hover:text-accent"
-        title="Close"
-      >
-        &times;
-      </button>
-
-      <!-- Modal Title -->
-      <h2 class="text-base tracking-wide mb-4 text-center">🕹️ How to Use 8-Bit Composer</h2>
-
-      <!-- Instructions List -->
-      <ul class="space-y-2 text-[0.65rem] leading-snug list-disc pl-5">
-        <li><strong>Click grid cells</strong> to toggle notes on/off.</li>
-        <li><strong>Right-click a note</strong> to edit pitch.</li>
-        <li><strong>Use instrument dropdowns and sliders</strong> to customize each row.</li>
-        <li><strong>Click “Generate”</strong> to use AI to create music from your prompt.</li>
-        <li><strong>AI is iterative:</strong> It modifies your current composition based on your prompt.</li>
-        <li><strong>Click “Fresh Slate”</strong> before generating to start from scratch.</li>
-        <li><strong>Click “Export to WAV”</strong> to save your composition locally.</li>
-      </ul>
-    </div>
-  </div>
-
   <!-- Grid Container -->
   <div id="grid" class="w-4/5 max-w-[1200px] mx-auto overflow-x-auto"></div>
-
-  <!-- Help Modal-->
-  <script>
-    document.getElementById("help-btn").addEventListener("click", () => {
-      document.getElementById("help-modal").classList.remove("hidden");
-    });
-
-    document.getElementById("close-help").addEventListener("click", () => {
-      document.getElementById("help-modal").classList.add("hidden");
-    });
-
-    window.addEventListener("click", (e) => {
-      const modal = document.getElementById("help-modal");
-      if (e.target === modal) {
-        modal.classList.add("hidden");
-      }
-    });
-  </script>
 
   <!-- Tone.js & Your Script -->
   <script src="https://cdn.jsdelivr.net/npm/tone@latest/build/Tone.js"></script>

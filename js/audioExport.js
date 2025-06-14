@@ -3,6 +3,10 @@ import { createVoices }  from './voices.js';
 import { initSequencer } from './sequencer.js';
 const Tone = window.Tone;
 
+/**
+ * Plays and records exactly one loop, then downloads a WAV.
+ * Returns a Promise that resolves when download is done.
+ */
 export function exportAudio({
   gridState,
   noteState,
@@ -11,41 +15,55 @@ export function exportAudio({
   bpmInput,
   lastGeneratedTitle
 }) {
-  return Tone.start().then(() => {
-    // reset transport
-    Tone.Transport.cancel();
-    Tone.Transport.position = 0;
-    Tone.Transport.bpm.value = bpmInput;
+  return new Promise(async (resolve, reject) => {
+    try {
+      // 1) Unlock & reset
+      await Tone.start();
+      Tone.Transport.cancel();
+      Tone.Transport.position = 0;
+      Tone.Transport.bpm.value = bpmInput;
 
-    // rebuild voices + sequencer
-    const voiceRows = createVoices(instrumentNames);
-    initSequencer(voiceRows.map(vr => vr.trigger), bpmInput);
+      // 2) Rebuild voices & sequencer
+      const voiceRows = createVoices(instrumentNames);
+      initSequencer(voiceRows.map(vr => vr.trigger), bpmInput);
 
-    // set up recorder on master output
-    const recorder = new Tone.Recorder();
-    Tone.Destination.connect(recorder);
+      // 3) Set up recorder
+      const recorder = new Tone.Recorder();
+      Tone.Destination.connect(recorder);
 
-    // compute exact loop end time
-    const secPerBeat  = 60 / bpmInput;
-    const stepDur     = secPerBeat / 4;           // 16th notes
-    const loopEndTime = STEPS * stepDur;
+      // 4) Start recording & playback
+      recorder.start();
+      Tone.Transport.start();
 
-    // schedule stop + download _before_ starting
-    Tone.Transport.scheduleOnce(async (time) => {
-      // stop transport at that exact time
-      Tone.Transport.stop(time);
+      // 5) Compute exact loop end time
+      const secPerBeat   = 60 / bpmInput;
+      const stepDuration = secPerBeat / 4;           // 16th notes
+      const loopEndTime  = STEPS * stepDuration;
 
-      // stop recorder and download
-      const wavBlob = await recorder.stop();
-      const url     = URL.createObjectURL(wavBlob);
-      const a       = document.createElement('a');
-      a.href        = url;
-      a.download    = `${lastGeneratedTitle || 'composition'}.wav`;
-      a.click();
-    }, loopEndTime);
+      // 6) Schedule the stop+download
+      Tone.Transport.scheduleOnce(async (time) => {
+        // stop transport right on time
+        Tone.Transport.stop(time);
 
-    // now start recording & playback
-    recorder.start();
-    Tone.Transport.start();
+        try {
+          // stop recorder & get WAV Blob
+          const wavBlob = await recorder.stop();
+
+          // download
+          const url = URL.createObjectURL(wavBlob);
+          const a   = document.createElement('a');
+          a.href    = url;
+          a.download= `${lastGeneratedTitle || 'composition'}.wav`;
+          a.click();
+
+          resolve();
+        } catch (err) {
+          reject(err);
+        }
+      }, loopEndTime);
+
+    } catch (err) {
+      reject(err);
+    }
   });
 }

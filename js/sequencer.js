@@ -22,6 +22,9 @@ export function initSequencer(voices, bpm = 120) {
     const ticksPer16th = Tone.Transport.PPQ / 4;
     const step = Math.floor(Tone.Transport.ticks / ticksPer16th) % STEPS;
 
+    // fire stepChanged for the UI
+    document.dispatchEvent(new CustomEvent('stepChanged', { detail: { step } }));
+
     voices.forEach((triggerFn, row) => {
       const prev = (step + STEPS - 1) % STEPS;
       // start only at the beginning of a run

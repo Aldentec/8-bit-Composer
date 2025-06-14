@@ -1,0 +1,25 @@
+<!-- navbar.html -->
+<nav class="w-full bg-control text-fg font-pixel text-xs border-b-4 border-accent shadow-md mb-5">
+  <div class="max-w-[1200px] mx-auto p-2 flex flex-col lg:flex-row lg:items-center lg:justify-between">
+    
+    <!-- Top row: logo + hamburger button -->
+    <div class="flex items-center justify-between">
+      <a href="/" class="text-accent hover:underline">8-Bit Composer</a>
+
+      <!-- Hamburger toggle (mobile only) -->
+      <button id="nav-toggle" class="lg:hidden text-fg text-lg" title="Toggle menu">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+
+    <!-- Navigation links -->
+    <div
+      id="nav-menu"
+      class="hidden flex-col space-y-2 mt-2 lg:flex lg:flex-row lg:space-y-0 lg:space-x-4 lg:mt-0"
+    >
+      <a href="/" class="hover:underline">Home</a>
+      <a href="/about.html" class="hover:underline">About</a>
+      <a href="/contact.html" class="hover:underline">Contact</a>
+    </div>
+  </div>
+</nav>

@@ -1,219 +1,278 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>8-Bit Composer</title>
-  <link rel="icon" type="image/png" href="https://s3.us-west-2.amazonaws.com/www.8bitcomposer.com/logo.png" sizes="32x32" />
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    // now tailwind is defined
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            bg:    '#080808',
-            fg:    '#0f0',
-            control: '#222',
-            accent:  '#0f0',
-            'cell-border': '#555'
-          },
-          fontFamily: {
-            pixel: ["'Press Start 2P'", 'monospace']
-          },
-          spacing: {
-            gap: '4px'
-          }
-        }
-      }
-    }
-  </script>
+    <title>8-Bit Composer – Create Chiptune Music Online</title>
+    <meta name="description" content="Compose retro 8-bit style music in your browser with a drag-and-drop grid sequencer. Export to WAV and share with friends!" />
+    <meta name="keywords" content="8-bit music, chiptune, online sequencer, retro music, tone.js, wav export" />
+    <meta name="author" content="Dorian Smith" />
 
-  
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-3DLZRJN22L"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
+    <!-- Open Graph (Facebook, Discord, etc.) -->
+    <meta property="og:title" content="8-Bit Composer – Create Chiptune Music Online" />
+    <meta property="og:description" content="Drag and drop notes to compose nostalgic 8-bit style music right in your browser." />
+    <meta property="og:image" content="https://s3.us-west-2.amazonaws.com/www.8bitcomposer.com/logo.png" />
+    <meta property="og:url" content="https://www.8bitcomposer.com/" />
+    <meta property="og:type" content="website" />
 
-    gtag('config', 'G-3DLZRJN22L');
-  </script>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7267090092112889"
-     crossorigin="anonymous"></script>
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="8-Bit Composer" />
+    <meta name="twitter:description" content="Make and share your own retro-style chiptunes online." />
+    <meta name="twitter:image" content="https://s3.us-west-2.amazonaws.com/www.8bitcomposer.com/logo.png" />
 
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-  />
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="https://s3.us-west-2.amazonaws.com/www.8bitcomposer.com/logo.png" sizes="32x32" />
 
-  <!-- Pixel font -->
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="/style.css" />
 
-  <!-- Your existing styles (if any) -->
-  <link rel="stylesheet" href="/style.css">
-</head>
-<body class="bg-bg text-fg font-pixel p-4">
-
-  <div id="navbar"></div>
-  <script>
-    fetch("/navbar.html")
-      .then(res => res.text())
-      .then(html => {
-        document.getElementById("navbar").innerHTML = html;
-
-        // ⬇️ Attach event handler after it's been injected
-        const toggle = document.getElementById("nav-toggle");
-        const menu = document.getElementById("nav-menu");
-
-        toggle?.addEventListener("click", () => {
-          menu?.classList.toggle("hidden");
-        });
-      })
-      .catch(err => console.error("Failed to load navbar:", err));
-  </script>
-
-  <!-- Controls -->
-  <div
-    id="controls"
-    class="w-4/5 max-w-[1200px] mx-auto mb-4
-          grid grid-cols-[repeat(auto-fit,minmax(4rem,1fr))]
-          gap-gap justify-center items-center
-          bg-control border-4 border-accent p-2 rounded"
-  >
-    <button id="play"     title="Play"><i class="fa-solid fa-play"></i></button>
-    <button id="stop"     title="Stop"><i class="fa-solid fa-stop"></i></button>
-    <button id="pause"    title="Pause"><i class="fa-solid fa-pause"></i></button>
-    <button id="loop-btn" title="Toggle Loop"><i class="fas fa-sync-alt"></i></button>
-    <button id="clear"    title="Clear Notes"><i class="fa-solid fa-broom"></i></button>
-    <button id="reset-btn" title="Fresh Slate"><i class="fa-solid fa-rotate-right"></i></button>
-    <button id="export" title="Export to WAV"><i class="fas fa-file-export"></i></button>
-    <button id="share-btn" title="Share Composition"><i class="fas fa-share-alt"></i></button>
-    <button id="help-btn" title="Help">?</button>
-
-    <!-- Steps wrapper -->
-    <div class="flex flex-col items-center gap-1">
-      <span class="text-[0.65rem]">Steps</span>
-      <input
-        id="steps-input"
-        type="number"
-        min="1"
-        value="16"
-        title="Steps per loop"
-        class="w-full bg-control border-4 border-cell-border text-fg text-center"
-      />
-    </div>
-
-    <!-- BPM wrapper -->
-    <div class="flex flex-col items-center gap-1">
-      <span class="text-[0.65rem]">BPM</span>
-      <input
-        id="bpm-input"
-        type="number"
-        min="1"
-        max="300"
-        value="80"
-        title="Beats per minute"
-        class="w-full bg-control border-4 border-cell-border text-fg text-center"
-      />
-    </div>
-  </div>
-
-  <div id="share-status"
-     class="w-4/5 max-w-[1200px] mx-auto mb-4 text-[0.65rem] text-center text-fg font-pixel min-h-[1.25rem]">
-  </div>
-
-  <!-- Generate Prompt UI -->
-  <div
-    id="generate-controls"
-    class="w-4/5 max-w-[1200px] mx-auto mb-4
-           bg-control border-4 border-accent p-2 rounded
-           flex flex-col gap-gap font-pixel text-[0.75rem]"
-  >
-    <span id="generate-status" class="min-h-[1.25rem]"></span>
-    <div id="generate-inputs" class="flex gap-gap">
-      <textarea
-        id="generate-prompt"
-        rows="2"
-        placeholder="Describe the type of 8-bit track you want…"
-        class="flex-1 bg-control border-4 border-cell-border text-fg p-2 text-[0.65rem] resize-y"
-      ></textarea>
-      <button id="generate-btn" class="bg-control border-4 border-cell-border text-fg py-2 px-4 text-[0.65rem]">🛠️ Generate</button>
-    </div>
-  </div>
-
-  <!-- Help Modal -->
-  <div
-    id="help-modal"
-    class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50"
-  >
-    <div class="bg-control border-4 border-accent text-fg font-pixel p-6 rounded-lg w-[90%] max-w-lg relative shadow-lg">
-      <!-- Close Button -->
-      <button
-        id="close-help"
-        class="absolute top-3 right-4 text-fg text-xl hover:text-accent"
-        title="Close"
-      >
-        &times;
-      </button>
-
-      <!-- Modal Title -->
-      <h2 class="text-base tracking-wide mb-4 text-center">🕹️ How to Use 8-Bit Composer</h2>
-
-      <!-- Instructions List -->
-      <ul class="space-y-2 text-[0.65rem] leading-snug list-disc pl-5">
-        <li><strong>Click grid cells</strong> to toggle notes on/off.</li>
-        <li><strong>Right-click a note</strong> to edit pitch.</li>
-        <li><strong>Use instrument dropdowns and sliders</strong> to customize each row.</li>
-        <li><strong>Click “Generate”</strong> to use AI to create music from your prompt.</li>
-        <li><strong>AI is iterative:</strong> It modifies your current composition based on your prompt.</li>
-        <li><strong>Click “Fresh Slate”</strong> before generating to start from scratch.</li>
-        <li><strong>Click “Export to WAV”</strong> to save your composition locally.</li>
-      </ul>
-    </div>
-  </div>
-
-  <!-- Grid Container -->
-  <div id="grid" class="w-4/5 max-w-[1200px] mx-auto overflow-x-auto"></div>
-
-  <!-- Help Modal-->
-  <script>
-    document.getElementById("help-btn").addEventListener("click", () => {
-      document.getElementById("help-modal").classList.remove("hidden");
-    });
-
-    document.getElementById("close-help").addEventListener("click", () => {
-      document.getElementById("help-modal").classList.add("hidden");
-    });
-
-    window.addEventListener("click", (e) => {
-      const modal = document.getElementById("help-modal");
-      if (e.target === modal) {
-        modal.classList.add("hidden");
-      }
-    });
-  </script>
-
-  <!-- Tone.js & Your Script -->
-  <script src="https://cdn.jsdelivr.net/npm/tone@latest/build/Tone.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.0/lame.min.js"></script>
-  <script type="module" src="/js/app.js"></script>
-  <div id="donate-button-container">
-    <div id="donate-button"></div>
-    <script src="https://www.paypalobjects.com/donate/sdk/donate-sdk.js" charset="UTF-8"></script>
+    <!-- Tailwind setup -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
-    PayPal.Donation.Button({
-    env:'production',
-    hosted_button_id:'SK8LSFEWA8HLQ',
-    image: {
-    src:'https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif',
-    alt:'Donate with PayPal button',
-    title:'PayPal - The safer, easier way to pay online!',
-    }
-    }).render('#donate-button');
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              bg: '#080808',
+              fg: '#0f0',
+              control: '#222',
+              accent: '#0f0',
+              'cell-border': '#555',
+            },
+            fontFamily: {
+              pixel: ["'Press Start 2P'", 'monospace'],
+            },
+            spacing: {
+              gap: '4px',
+            },
+          },
+        },
+      };
     </script>
-  </div>
-  
 
-</body>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-3DLZRJN22L"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { dataLayer.push(arguments); }
+      gtag('js', new Date());
+      gtag('config', 'G-3DLZRJN22L');
+    </script>
+
+    <!-- Google Ads -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7267090092112889"crossorigin="anonymous"></script>
+  </head>
+
+  <body class="bg-bg text-fg font-pixel p-4">
+    <header>
+      <div id="navbar"></div>
+    </header>
+
+    <script>
+      fetch("/navbar.html")
+        .then(res => res.text())
+        .then(html => {
+          document.getElementById("navbar").innerHTML = html;
+
+          // ⬇️ Attach event handler after it's been injected
+          const toggle = document.getElementById("nav-toggle");
+          const menu = document.getElementById("nav-menu");
+
+          toggle?.addEventListener("click", () => {
+            menu?.classList.toggle("hidden");
+          });
+        })
+        .catch(err => console.error("Failed to load navbar:", err));
+    </script>
+
+    <!-- Controls -->
+    <main>
+      <section id="controls-section">
+        <div
+          id="controls"
+          class="w-4/5 max-w-[1200px] mx-auto mb-4
+                grid grid-cols-[repeat(auto-fit,minmax(4rem,1fr))]
+                gap-gap justify-center items-center
+                bg-control border-4 border-accent p-2 rounded"
+        >
+          <button id="play"     title="Play"><i class="fa-solid fa-play"></i></button>
+          <button id="stop"     title="Stop"><i class="fa-solid fa-stop"></i></button>
+          <button id="pause"    title="Pause"><i class="fa-solid fa-pause"></i></button>
+          <button id="loop-btn" title="Toggle Loop"><i class="fas fa-sync-alt"></i></button>
+          <button id="clear"    title="Clear Notes"><i class="fa-solid fa-broom"></i></button>
+          <button id="reset-btn" title="Fresh Slate"><i class="fa-solid fa-rotate-right"></i></button>
+          <button id="export" title="Export to WAV"><i class="fas fa-file-export"></i></button>
+          <button id="share-btn" title="Share Composition"><i class="fas fa-share-alt"></i></button>
+          <button id="help-btn" title="Help">?</button>
+
+          <!-- Steps wrapper -->
+          <div class="flex flex-col items-center gap-1">
+            <span class="text-[0.65rem]">Steps</span>
+            <input
+              id="steps-input"
+              type="number"
+              min="1"
+              value="16"
+              title="Steps per loop"
+              class="w-full bg-control border-4 border-cell-border text-fg text-center"
+            />
+          </div>
+
+          <!-- BPM wrapper -->
+          <div class="flex flex-col items-center gap-1">
+            <span class="text-[0.65rem]">BPM</span>
+            <input
+              id="bpm-input"
+              type="number"
+              min="1"
+              max="300"
+              value="80"
+              title="Beats per minute"
+              class="w-full bg-control border-4 border-cell-border text-fg text-center"
+            />
+          </div>
+        </div>
+
+        
+        
+      </section>
+
+      <!-- Generate Prompt UI -->
+      <section id="generate-section">
+        <div
+          id="generate-controls"
+          class="w-4/5 max-w-[1200px] mx-auto mb-4
+                bg-control border-4 border-accent p-2 rounded
+                flex flex-col gap-gap font-pixel text-[0.75rem]"
+        >
+          <span id="generate-status" class="min-h-[1.25rem]"></span>
+          <div id="generate-inputs" class="flex gap-gap">
+            <textarea
+              id="generate-prompt"
+              rows="2"
+              placeholder="Describe the type of 8-bit track you want…"
+              class="flex-1 bg-control border-4 border-cell-border text-fg p-2 text-[0.65rem] resize-y"
+            ></textarea>
+            <button id="generate-btn" class="bg-control border-4 border-cell-border text-fg py-2 px-4 text-[0.65rem]">🛠️ Generate</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sequencer grid -->
+      <section id="grid-section">
+        <div id="grid" class="w-4/5 max-w-[1200px] mx-auto overflow-x-auto"></div>
+      </section>
+
+      <!-- Share status text/generated link -->
+      <section id="share-section">
+        <div id="share-status"
+          class="w-4/5 max-w-[1200px] mx-auto mb-4 text-[0.65rem] text-center text-fg font-pixel min-h-[1.25rem]">
+        </div>
+      </section>
+    </main>
+
+    <!-- Help Modal -->
+      <aside 
+        id="help-modal"
+        class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50"
+      >
+        <div class="bg-control border-4 border-accent text-fg font-pixel p-6 rounded-lg w-[90%] max-w-lg relative shadow-lg">
+          <!-- Close Button -->
+          <button
+            id="close-help"
+            class="absolute top-3 right-4 text-fg text-xl hover:text-accent"
+            title="Close"
+          >
+            &times;
+          </button>
+
+          <!-- Modal Title -->
+          <h2 class="text-base tracking-wide mb-4 text-center">🕹️ How to Use 8-Bit Composer</h2>
+
+          <!-- Instructions List -->
+          <ul class="space-y-2 text-[0.65rem] leading-snug list-disc pl-5">
+            <li><strong>Click grid cells</strong> to toggle notes on/off.</li>
+            <li><strong>Right-click a note</strong> to edit pitch.</li>
+            <li><strong>Use instrument dropdowns and sliders</strong> to customize each row.</li>
+            <li><strong>Click “Generate”</strong> to use AI to create music from your prompt.</li>
+            <li><strong>AI is iterative:</strong> It modifies your current composition based on your prompt.</li>
+            <li><strong>Click “Fresh Slate”</strong> before generating to start from scratch.</li>
+            <li><strong>Click “Export to WAV”</strong> to save your composition locally.</li>
+          </ul>
+        </div>
+      </aside>
+
+      <footer class="text-center mt-8">
+        <p class="text-[0.6rem] mt-2 text-fg font-pixel">
+          <div id="donate-container">
+            <span>Help me keep 8 Bit Composer alive by donating below:</span>
+            <div id="donate-button-container">
+              <div id="donate-button"></div>
+            </div>
+          </div>
+        </p>
+        <p class="text-[0.6rem] mt-2 text-fg font-pixel add-margin-top">
+          <br />
+          <br />
+          <br />
+          <br />
+          <br />
+          Powered by pixels and patterns <br />
+          Crafted with love by <a href='https://doriansmith.dev' target="_blank" style="text-decoration: underline;"> Dorian Smith </a>
+          <p class="copyright-text">
+            <span id="copyright-year" class="add-margin-top" style="font-weight:bold;"></span> &copy; All bleeps and bloops reserved.
+          </p>
+        </p>
+      </footer>
+      
+      <!-- used to generate year range in footer -->
+      <script>
+        document.getElementById("copyright-year").textContent = `${new Date().getFullYear()}`;
+      </script>
+
+
+    <!-- Help Modal JS-->
+    <script>
+      document.getElementById("help-btn").addEventListener("click", () => {
+        document.getElementById("help-modal").classList.remove("hidden");
+      });
+
+      document.getElementById("close-help").addEventListener("click", () => {
+        document.getElementById("help-modal").classList.add("hidden");
+      });
+
+      window.addEventListener("click", (e) => {
+        const modal = document.getElementById("help-modal");
+        if (e.target === modal) {
+          modal.classList.add("hidden");
+        }
+      });
+    </script>
+
+    <!-- Tone.js & Your Script -->
+    <script src="https://cdn.jsdelivr.net/npm/tone@latest/build/Tone.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.0/lame.min.js"></script>
+    <!-- Main App JS -->
+    <script type="module" src="/js/app.js"></script>
+    <!-- Donate button because why not? -->
+    <div id="donate-button-container">
+      <div id="donate-button"></div>
+      <script src="https://www.paypalobjects.com/donate/sdk/donate-sdk.js" charset="UTF-8"></script>
+      <script>
+        PayPal.Donation.Button({
+          env:'production',
+          hosted_button_id:'SK8LSFEWA8HLQ',
+          image: {
+          src:'https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif',
+          alt:'Donate with PayPal button',
+          title:'PayPal - The safer, easier way to pay online!',
+        }
+        }).render('#donate-button');
+      </script>
+    </div>
+  </body>
 </html>

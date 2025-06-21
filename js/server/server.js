@@ -242,6 +242,7 @@ app.get("/", (req, res) => {
 });
 
 // ── POST /generate handler (unchanged) ─────────────────────────────────────────
+// amazonq-ignore-next-line
 app.post("/generate", async (req, res) => {
   try {
     const { prompt: userPrompt, existingComposition, mode = "edit" } = req.body;

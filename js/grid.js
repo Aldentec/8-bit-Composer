@@ -6,6 +6,7 @@ export let gridState   = [];   // boolean on/off per [row][step]
 export let noteState   = [];   // note string per [row][step]
 export let volumeState = [];   // 0.0–1.0 per [row]
 export let muted       = [];   // row‐level mute flags
+export let adsrSettings = []; // Array of { attack, decay, sustain, release } per row
 
 // drag/stretch state
 let isDragging    = false,
@@ -24,7 +25,6 @@ export const INSTRUMENT_OPTIONS = [
 ];
 
 export function initGrid(containerId, instrumentTypes = [], steps = 16) {
-  // 1) preserve old state
   const oldG = gridState, oldN = noteState, oldV = volumeState;
   const oldR = oldG.length, oldC = oldG[0]?.length || 0;
 
@@ -39,13 +39,14 @@ export function initGrid(containerId, instrumentTypes = [], steps = 16) {
                     r < oldR && c < oldC ? oldN[r][c] : 'C4' ));
   volumeState = Array.from({ length: CHANNELS }, (_, r) =>
                   r < oldV.length ? oldV[r] : 0.8 );
-  muted       = Array.from({ length: CHANNELS }, () => false);
+  adsrSettings = Array.from({ length: CHANNELS }, (_, r) =>
+    adsrSettings[r] ?? { attack: 0.01, decay: 0.1, sustain: 0.5, release: 0.1 }
+  );
+  muted = Array.from({ length: CHANNELS }, () => false);
 
-  // 2) clear container
   const container = document.getElementById(containerId);
   container.innerHTML = '';
 
-  // 3) end drag on mouseup
   document.addEventListener('mouseup', () => {
     if (isDragging && dragOccurred) {
       const from = Math.min(dragStart, dragEnd),
@@ -59,16 +60,11 @@ export function initGrid(containerId, instrumentTypes = [], steps = 16) {
     updateConnectedStyles(container);
   });
 
-  // 4) build rows
   instrumentTypes.forEach((type, row) => {
     const rowEl = document.createElement('div');
-    rowEl.className = 'grid-row flex items-center';
+    rowEl.className = 'grid-row flex items-center gap-2';
 
-    // ─── fixed controls ───
-    const ctrl = document.createElement('div');
-    ctrl.className = 'row-controls flex-shrink-0 flex items-center gap-1';
-
-    // instrument select
+    // ─── Instrument Select ───
     const sel = document.createElement('select');
     sel.className = 'instrument-select';
     INSTRUMENT_OPTIONS.forEach(opt => {
@@ -82,9 +78,9 @@ export function initGrid(containerId, instrumentTypes = [], steps = 16) {
         detail: { row, type: e.target.value }
       }))
     );
-    ctrl.append(sel);
+    rowEl.append(sel);
 
-    // mute
+    // ─── Mute ───
     const muteBtn = document.createElement('button');
     muteBtn.className = 'mute-btn';
     muteBtn.addEventListener('click', () => {
@@ -94,9 +90,9 @@ export function initGrid(containerId, instrumentTypes = [], steps = 16) {
         detail: { row, muted: muted[row] }
       }));
     });
-    ctrl.append(muteBtn);
+    rowEl.append(muteBtn);
 
-    // remove
+    // ─── Remove ───
     const rm = document.createElement('button');
     rm.className = 'remove-row-btn';
     rm.textContent = '✖';
@@ -106,55 +102,51 @@ export function initGrid(containerId, instrumentTypes = [], steps = 16) {
         detail: { row }
       }));
     });
-    ctrl.append(rm);
+    rowEl.append(rm);
 
-    // volume
+    // ─── Volume ───
     const vol = document.createElement('input');
-    vol.type      = 'range';
-    vol.min       = 0; vol.max = 1; vol.step = 0.01;
-    vol.value     = volumeState[row];
-    vol.className = 'volume-slider';
+    vol.type = 'range';
+    vol.min = 0; vol.max = 1; vol.step = 0.01;
+    vol.value = volumeState[row];
+    vol.className = 'volume-slider w-[60px]';
     vol.addEventListener('input', e =>
       document.dispatchEvent(new CustomEvent('volumeChanged', {
         detail: { row, volume: parseFloat(e.target.value) }
       }))
     );
-    ctrl.append(vol);
+    rowEl.append(vol);
 
-    rowEl.append(ctrl);
-
-    // ─── scrollable notes ───
+    // ─── Step Grid ───
     const notesWrapper = document.createElement('div');
     notesWrapper.className = 'notes-wrapper flex overflow-x-auto';
     notesWrapper.style.gap = 'var(--grid-gap)';
 
     for (let step = 0; step < STEPS; step++) {
       const cell = document.createElement('div');
-      cell.className    = 'cell';
-      cell.dataset.row  = row;
+      cell.className = 'cell';
+      cell.dataset.row = row;
       cell.dataset.step = step;
+
       if (gridState[row][step]) {
         cell.classList.add('active');
         cell.textContent = noteState[row][step];
       }
 
-      // --- drag start ---
       cell.addEventListener('mousedown', () => {
-        isDragging   = true;
-        dragRow      = row;
-        dragStart    = step;
-        dragEnd      = step;
+        isDragging = true;
+        dragRow = row;
+        dragStart = step;
+        dragEnd = step;
         dragOccurred = false;
       });
 
-      // --- drag preview ---
       cell.addEventListener('mouseover', () => {
         if (isDragging && dragRow === row) {
           dragOccurred = true;
-          dragEnd      = step;
+          dragEnd = step;
           const from = Math.min(dragStart, dragEnd),
                 to   = Math.max(dragStart, dragEnd);
-          // clear preview
           for (let s = 0; s < STEPS; s++) {
             if (!gridState[row][s]) {
               const c = notesWrapper.querySelector(`.cell[data-step="${s}"]`);
@@ -162,7 +154,6 @@ export function initGrid(containerId, instrumentTypes = [], steps = 16) {
               c.textContent = '';
             }
           }
-          // show preview
           for (let s = from; s <= to; s++) {
             const c = notesWrapper.querySelector(`.cell[data-step="${s}"]`);
             c.classList.add('active');
@@ -171,14 +162,12 @@ export function initGrid(containerId, instrumentTypes = [], steps = 16) {
         }
       });
 
-      // --- single toggle ---
       cell.addEventListener('click', () => {
         if (!dragOccurred) {
           const on = gridState[row][step];
           gridState[row][step] = !on;
-
           if (!on) {
-            const pitch = noteState[row][step] || "C4";
+            const pitch = noteState[row][step] || 'C4';
             noteState[row][step] = pitch;
             cell.classList.add('active');
             cell.textContent = pitch;
@@ -189,25 +178,22 @@ export function initGrid(containerId, instrumentTypes = [], steps = 16) {
           }
 
           updateConnectedStyles(container);
-
-          // Dispatch a clear, custom event to signal state change
           document.dispatchEvent(new CustomEvent('cellToggled', {
             detail: { row, step, active: gridState[row][step], pitch: noteState[row][step] }
           }));
         }
       });
 
-      // --- edit note ---
       cell.addEventListener('contextmenu', e => {
         e.preventDefault();
         const curr = noteState[row][step];
-        const nn   = prompt('Enter note (e.g. C4, A#3):', curr);
+        const nn = prompt('Enter note (e.g. C4, A#3):', curr);
         if (nn) {
           noteState[row][step] = nn;
           if (gridState[row][step]) cell.textContent = nn;
         }
       });
-      
+
       notesWrapper.append(cell);
     }
 
@@ -215,7 +201,6 @@ export function initGrid(containerId, instrumentTypes = [], steps = 16) {
     container.append(rowEl);
   });
 
-  // 5) add‐row button
   const add = document.createElement('div');
   add.className = 'add-row';
   add.textContent = '+';

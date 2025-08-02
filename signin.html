@@ -1,0 +1,43 @@
+<!-- signin.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sign In – 8-Bit Composer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #080808;
+      color: #0f0;
+      font-family: 'Press Start 2P', monospace;
+      text-align: center;
+      padding-top: 5rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1 class="text-xl mb-6">🎵 Welcome to 8-Bit Composer</h1>
+  <p class="text-sm mb-10">Login to start composing retro music</p>
+
+  <button id="login-btn"
+    class="border-4 border-accent bg-control text-fg px-4 py-2 hover:bg-accent hover:text-bg transition">
+    Sign in with Google
+  </button>
+
+  <script type="module">
+    import { signInWithGoogle, isLoggedIn } from './js/auth/auth.js';
+
+    if (isLoggedIn()) {
+      window.location.href = '/'; // already signed in → redirect to main
+    }
+
+    document.getElementById('login-btn').addEventListener('click', () => {
+      signInWithGoogle();
+    });
+  </script>
+
+</body>
+</html>

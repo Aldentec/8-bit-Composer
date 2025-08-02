@@ -1,55 +1,110 @@
-// js/generate.js
-import { getControls } from './controls.js';
+// js/generate.js - Updated to include credit system and fix CORS
+import { CreditManager, checkCreditsBeforeGenerate, updateCreditDisplay } from './credits.js';
 import { loadComposition, saveComposition } from './storage.js';
 
-export function initGenerate(applyComposition) {
-  const { genBtn, genTextarea, genStatus } = getControls();
+let applyCompositionCallback;
+const creditManager = new CreditManager();
 
-  genBtn.addEventListener('click', async () => {
-    const promptText = genTextarea.value.trim();
-    if (!promptText) {
-      genStatus.style.color = 'crimson';
-      genStatus.textContent = '⚠️ Please enter a prompt.';
+export function initGenerate(callback) {
+  applyCompositionCallback = callback;
+  
+  const generateBtn = document.getElementById('generate-btn');
+  const statusEl = document.getElementById('generate-status');
+  
+  // Initialize credit display
+  initializeCreditDisplay();
+  
+  generateBtn.addEventListener('click', async () => {
+    const prompt = document.getElementById('generate-prompt').value.trim();
+    
+    if (!prompt) {
+      statusEl.style.color = 'crimson';
+      statusEl.textContent = '⚠️ Please enter a prompt first.';
       return;
     }
 
+    // Check if user is logged in
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      statusEl.style.color = 'crimson';
+      statusEl.textContent = '⚠️ Please sign in to use AI generation.';
+      return;
+    }
+
+    // Check credits before proceeding
+    const canProceed = await checkCreditsBeforeGenerate(creditManager);
+    if (!canProceed) {
+      statusEl.style.color = 'crimson';
+      statusEl.textContent = '❌ Generation cancelled - insufficient credits.';
+      return;
+    }
+
+    // Get current composition for editing check
     const currentComp = loadComposition();
     const isEditing = currentComp?.channels?.some(ch => ch.notes?.length > 0);
 
-    genStatus.textContent = '⏳ Sending prompt to AI...';
-    genBtn.disabled = true;
-    genBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+    // Proceed with generation
+    statusEl.textContent = '⏳ Sending prompt to AI...';
+    generateBtn.disabled = true;
+    generateBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
 
     try {
-      const response = await fetch('https://lrii6vsy7bs6omqaqewk6dvf540cimqo.lambda-url.us-west-2.on.aws/', {   
-    //   const response = await fetch('https://5f2zw4a2xb.execute-api.us-west-2.amazonaws.com/test/generate', {
+      // Call AI generation endpoint (without Authorization header to avoid CORS)
+      const response = await fetch('https://lrii6vsy7bs6omqaqewk6dvf540cimqo.lambda-url.us-west-2.on.aws/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            mode: isEditing ? 'edit' : 'new',
-            prompt: promptText,
-            existingComposition: isEditing ? currentComp : undefined
+          mode: isEditing ? 'edit' : 'new',
+          prompt: prompt,
+          existingComposition: isEditing ? currentComp : undefined
         }),
       });
 
-      const result = await response.json();
-
-      if (result && result.channels) {
-        applyComposition(result);
-        saveComposition(result);
-        genStatus.style.color = 'green';
-        genStatus.textContent = '✅ Composition applied!';
-      } else {
-        genStatus.style.color = 'crimson';
-        genStatus.textContent = '❌ Invalid response from server.';
+      if (!response.ok) {
+        throw new Error(`Generation failed: ${response.status}`);
       }
-    } catch (err) {
-      genStatus.style.color = 'crimson';
-      genStatus.textContent = '❌ Error contacting backend.';
-      console.error(err);
+
+      const result = await response.json();
+      
+      // Check for the expected response format
+      if (result && result.channels) {
+        // Only deduct credit AFTER successful AI generation
+        const remainingCredits = await creditManager.useCredit('generate');
+        
+        // Apply the generated composition
+        applyCompositionCallback(result);
+        saveComposition(result);
+        
+        // Update credit display in navbar
+        updateCreditDisplay(remainingCredits);
+        
+        statusEl.style.color = 'green';
+        statusEl.textContent = `✅ Generated! (${remainingCredits} credits remaining)`;
+      } else {
+        throw new Error('Invalid response format - no composition returned');
+      }
+
+    } catch (error) {
+      console.error('Generation error:', error);
+      statusEl.style.color = 'crimson';
+      statusEl.textContent = `❌ Generation failed: ${error.message}`;
+      
+      // Credit is not deducted if generation fails
     } finally {
-      genBtn.disabled = false;
-      genBtn.innerHTML = 'Generate';
+      generateBtn.disabled = false;
+      generateBtn.innerHTML = 'Generate';
     }
   });
+}
+
+async function initializeCreditDisplay() {
+  try {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      const credits = await creditManager.getCredits();
+      updateCreditDisplay(credits);
+    }
+  } catch (error) {
+    console.error('Failed to load credits:', error);
+  }
 }

@@ -273,6 +273,34 @@
         }
         }).render('#donate-button');
       </script>
+      <script type="module">
+      import jwtDecode from 'https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.esm.js';
+
+      function getTokenFromUrl() {
+        const hash = window.location.hash.substring(1); // remove #
+        const params = new URLSearchParams(hash);
+        return {
+          idToken: params.get('id_token'),
+          accessToken: params.get('access_token'),
+        };
+      }
+
+      const { idToken } = getTokenFromUrl();
+
+      if (idToken) {
+        // Save to localStorage
+        localStorage.setItem('idToken', idToken);
+
+        // Optional: decode and show name
+        const decoded = jwtDecode(idToken);
+        const name = decoded.given_name || decoded.name || decoded.email || 'User';
+        console.log('Signed in as:', name);
+
+        // Remove token from URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    </script>
+
     </div>
   </body>
 </html>

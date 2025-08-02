@@ -1,21 +1,19 @@
-<!-- navbar.html -->
+<!-- navbar.html - Updated with centered credits display -->
 <nav class="w-full bg-control text-fg font-pixel text-xs border-b-4 border-accent shadow-md mb-5">
   <div class="max-w-[1200px] mx-auto p-2 flex flex-col lg:flex-row lg:items-center lg:justify-between">
-    
     <!-- Top row: logo + hamburger button -->
     <div class="flex items-center justify-between gap-2">
       <a href="/" class="flex items-center gap-2">
         <img src="https://s3.us-west-2.amazonaws.com/www.8bitcomposer.com/logo.png" alt="8-Bit Composer Logo" class="h-6 w-6" />
         <span class="text-accent hover:underline">8-Bit Composer</span>
       </a>
-
       <!-- Hamburger toggle (mobile only) -->
       <button id="nav-toggle" class="lg:hidden text-fg text-lg" title="Toggle menu">
         <i class="fas fa-bars"></i>
       </button>
     </div>
-
-    <!-- Navigation links -->
+    
+    <!-- Navigation links (credits REMOVED from here) -->
     <div
       id="nav-menu"
       class="hidden flex-col space-y-2 mt-2 lg:flex lg:flex-row lg:space-y-0 lg:space-x-4 lg:mt-0"
@@ -23,6 +21,26 @@
       <a href="/" class="hover:underline">Home</a>
       <a href="/about.html" class="hover:underline">About</a>
       <a href="/contact.html" class="hover:underline">Contact</a>
+      <a href="#" id="signin-link" class="hover:underline">Sign In</a>
+      <a href="#" id="signout-link" class="hover:underline hidden">Sign Out</a>
+    </div>
+  </div>
+  
+  <!-- User info and credits section (CREDITS MOVED HERE) -->
+  <div class="text-center text-accent text-xs mt-1 pb-2">
+    <!-- Welcome message -->
+    <div id="user-info" class="mb-2"></div>
+    
+    <!-- Credits display - centered under welcome message -->
+    <div id="credit-container" class="hidden">
+      <div class="flex items-center justify-center gap-3">
+        <span id="credit-display" class="text-fg">AI Credits: --</span>
+        <button id="buy-credits-btn" class="bg-accent text-bg px-3 py-1 text-xs rounded hover:bg-fg hover:text-bg transition-colors border-2 border-accent" title="Buy more credits">
+          <i class="fas fa-plus mr-1"></i>Buy More
+        </button>
+      </div>
     </div>
   </div>
 </nav>
+
+<!-- Credits functionality will be handled by the main app.js -->

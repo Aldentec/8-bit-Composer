@@ -4,31 +4,71 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>8-Bit Composer – Create Chiptune Music Online</title>
-    <meta name="description" content="Compose retro 8-bit style music in your browser with a drag-and-drop grid sequencer. Export to WAV and share with friends!" />
-    <meta name="keywords" content="8-bit music, chiptune, online sequencer, retro music, tone.js, wav export" />
+    <!-- Primary SEO Meta Tags -->
+    <title>8-Bit Composer – Free Online Chiptune Music Maker & Sequencer</title>
+    <meta name="description" content="Create nostalgic 8-bit chiptune music online with our free browser-based sequencer. Drag-and-drop grid interface, export to WAV, and share your retro compositions instantly. No downloads required!" />
     <meta name="author" content="Dorian Smith" />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://www.8bitcomposer.com/" />
+    
+    <!-- Enhanced Keywords (though less important now) -->
+    <meta name="keywords" content="8-bit music maker, chiptune creator, online music sequencer, retro music composer, pixel music, video game music, NES music, gameboy music, free music software, browser music maker" />
 
     <!-- Open Graph (Facebook, Discord, etc.) -->
-    <meta property="og:title" content="8-Bit Composer – Create Chiptune Music Online" />
-    <meta property="og:description" content="Drag and drop notes to compose nostalgic 8-bit style music right in your browser." />
+    <meta property="og:title" content="8-Bit Composer – Free Online Chiptune Music Maker" />
+    <meta property="og:description" content="Create and share nostalgic 8-bit style music with our free online sequencer. Perfect for game developers, musicians, and retro enthusiasts." />
     <meta property="og:image" content="https://s3.us-west-2.amazonaws.com/www.8bitcomposer.com/logo.png" />
     <meta property="og:url" content="https://www.8bitcomposer.com/" />
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="8-Bit Composer" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="8-Bit Composer" />
-    <meta name="twitter:description" content="Make and share your own retro-style chiptunes online." />
+    <meta name="twitter:title" content="8-Bit Composer – Free Online Chiptune Music Maker" />
+    <meta name="twitter:description" content="Create nostalgic 8-bit music in your browser. Free online sequencer with export and sharing features." />
     <meta name="twitter:image" content="https://s3.us-west-2.amazonaws.com/www.8bitcomposer.com/logo.png" />
+    <meta name="twitter:creator" content="@yourtwitterhandle" />
 
-    <!-- Favicon -->
+    <!-- Favicon and App Icons -->
     <link rel="icon" type="image/png" href="https://s3.us-west-2.amazonaws.com/www.8bitcomposer.com/logo.png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="https://s3.us-west-2.amazonaws.com/www.8bitcomposer.com/logo.png" />
 
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="/style.css" />
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "8-Bit Composer",
+      "description": "Free online chiptune music maker and sequencer for creating retro 8-bit style music",
+      "url": "https://www.8bitcomposer.com/",
+      "applicationCategory": "MusicApplication",
+      "operatingSystem": "Web Browser",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "creator": {
+        "@type": "Person",
+        "name": "Dorian Smith",
+        "url": "https://doriansmith.dev"
+      },
+      "featureList": [
+        "Drag and drop sequencer",
+        "Multiple 8-bit instruments",
+        "WAV export functionality",
+        "Composition sharing",
+        "Real-time playback",
+        "Loop and tempo controls"
+      ]
+    }
+    </script>
 
     <!-- Tailwind setup -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -64,10 +104,13 @@
     </script>
 
     <!-- Google Ads -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7267090092112889"crossorigin="anonymous"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7267090092112889" crossorigin="anonymous"></script>
   </head>
 
   <body class="bg-bg text-fg font-pixel p-4">
+    <!-- Skip Navigation for Accessibility -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 bg-accent text-bg p-2">Skip to main content</a>
+    
     <header>
       <div id="navbar"></div>
     </header>
@@ -77,11 +120,8 @@
         .then(res => res.text())
         .then(html => {
           document.getElementById("navbar").innerHTML = html;
-
-          // ⬇️ Attach event handler after it's been injected
           const toggle = document.getElementById("nav-toggle");
           const menu = document.getElementById("nav-menu");
-
           toggle?.addEventListener("click", () => {
             menu?.classList.toggle("hidden");
           });
@@ -89,156 +129,188 @@
         .catch(err => console.error("Failed to load navbar:", err));
     </script>
 
-    <!-- Controls -->
-    <main>
-      <section id="controls-section">
+    <!-- Main Content with Semantic Structure -->
+    <main id="main-content">
+      <!-- Hero Section -->
+      <section class="text-center mb-8">
+        <h1 class="text-2xl md:text-3xl mb-4 text-accent">Free Online 8-Bit Music Composer</h1>
+        <p class="text-xs md:text-sm mb-6 max-w-2xl mx-auto leading-5">
+          Create nostalgic chiptune music with our browser-based sequencer. Perfect for game developers, musicians, and retro enthusiasts. No downloads required – start composing instantly!
+        </p>
+      </section>
+
+      <!-- Controls Section -->
+      <section id="controls-section" aria-label="Music composition controls">
+        <h2 class="sr-only">Playback and Composition Controls</h2>
         <div
           id="controls"
           class="w-4/5 max-w-[1200px] mx-auto mb-4
                 grid grid-cols-[repeat(auto-fit,minmax(4rem,1fr))]
                 gap-gap justify-center items-center
                 bg-control border-4 border-accent p-2 rounded"
+          role="toolbar"
+          aria-label="Music controls"
         >
-          <button id="play"     title="Play"><i class="fa-solid fa-play"></i></button>
-          <button id="stop"     title="Stop"><i class="fa-solid fa-stop"></i></button>
-          <button id="pause"    title="Pause"><i class="fa-solid fa-pause"></i></button>
-          <button id="loop-btn" title="Toggle Loop"><i class="fas fa-sync-alt"></i></button>
-          <button id="clear"    title="Clear Notes"><i class="fa-solid fa-broom"></i></button>
-          <button id="reset-btn" title="Fresh Slate"><i class="fa-solid fa-rotate-right"></i></button>
-          <button id="export" title="Export to WAV"><i class="fas fa-file-export"></i></button>
-          <button id="share-btn" title="Share Composition"><i class="fas fa-share-alt"></i></button>
-          <button id="help-btn" title="Help">?</button>
+          <button id="play" title="Play composition" aria-label="Play"><i class="fa-solid fa-play"></i></button>
+          <button id="stop" title="Stop playback" aria-label="Stop"><i class="fa-solid fa-stop"></i></button>
+          <button id="pause" title="Pause playback" aria-label="Pause"><i class="fa-solid fa-pause"></i></button>
+          <button id="loop-btn" title="Toggle loop mode" aria-label="Toggle Loop"><i class="fas fa-sync-alt"></i></button>
+          <button id="clear" title="Clear all notes" aria-label="Clear Notes"><i class="fa-solid fa-broom"></i></button>
+          <button id="reset-btn" title="Reset to fresh slate" aria-label="Fresh Slate"><i class="fa-solid fa-rotate-right"></i></button>
+          <button id="export" title="Export composition to WAV file" aria-label="Export to WAV"><i class="fas fa-file-export"></i></button>
+          <button id="share-btn" title="Share your composition" aria-label="Share Composition"><i class="fas fa-share-alt"></i></button>
+          <button id="help-btn" title="Show help information" aria-label="Help">?</button>
 
           <!-- Steps wrapper -->
           <div class="flex flex-col items-center gap-1">
-            <span class="text-[0.65rem]">Steps</span>
+            <label for="steps-input" class="text-[0.65rem]">Steps</label>
             <input
               id="steps-input"
               type="number"
               min="1"
               value="16"
-              title="Steps per loop"
+              title="Number of steps per loop"
+              aria-label="Steps per loop"
               class="w-full bg-control border-4 border-cell-border text-fg text-center"
             />
           </div>
 
           <!-- BPM wrapper -->
           <div class="flex flex-col items-center gap-1">
-            <span class="text-[0.65rem]">BPM</span>
+            <label for="bpm-input" class="text-[0.65rem]">BPM</label>
             <input
               id="bpm-input"
               type="number"
               min="1"
               max="300"
               value="80"
-              title="Beats per minute"
+              title="Beats per minute (tempo)"
+              aria-label="Beats per minute"
               class="w-full bg-control border-4 border-cell-border text-fg text-center"
             />
           </div>
         </div>
-
-        
-        
       </section>
 
-      <!-- Generate Prompt UI -->
-      <section id="generate-section">
+      <!-- AI Generation Section -->
+      <section id="generate-section" aria-label="AI music generation">
+        <h2 class="sr-only">AI-Powered Music Generation</h2>
         <div
           id="generate-controls"
           class="w-4/5 max-w-[1200px] mx-auto mb-4
                 bg-control border-4 border-accent p-2 rounded
                 flex flex-col gap-gap font-pixel text-[0.75rem]"
         >
-          <span id="generate-status" class="min-h-[1.25rem]"></span>
+          <div id="generate-status" class="min-h-[1.25rem]" aria-live="polite"></div>
           <div id="generate-inputs" class="flex gap-gap">
             <textarea
               id="generate-prompt"
               rows="2"
-              placeholder="Describe the type of 8-bit track you want…"
+              placeholder="Describe the type of 8-bit track you want (e.g., 'upbeat battle theme' or 'peaceful village music')..."
+              aria-label="Music generation prompt"
               class="flex-1 bg-control border-4 border-cell-border text-fg p-2 text-[0.65rem] resize-y"
             ></textarea>
-            <button id="generate-btn" class="bg-control border-4 border-cell-border text-fg py-2 px-4 text-[0.65rem]">🛠️ Generate</button>
+            <button id="generate-btn" aria-label="Generate music from prompt" class="bg-control border-4 border-cell-border text-fg py-2 px-4 text-[0.65rem]">🛠️ Generate</button>
           </div>
         </div>
       </section>
 
-      <!-- Sequencer grid -->
-      <section id="grid-section">
-        <div id="grid" class="w-4/5 max-w-[1200px] mx-auto overflow-x-auto"></div>
+      <!-- Music Sequencer Grid -->
+      <section id="grid-section" aria-label="Music sequencer grid">
+        <h2 class="sr-only">Music Composition Grid</h2>
+        <div id="grid" class="w-4/5 max-w-[1200px] mx-auto overflow-x-auto" role="grid" aria-label="Music sequencer grid"></div>
       </section>
 
-      <!-- Share status text/generated link -->
-      <section id="share-section">
+      <!-- Share Status -->
+      <section id="share-section" aria-label="Sharing status">
         <div id="share-status"
-          class="w-4/5 max-w-[1200px] mx-auto mb-4 text-[0.65rem] text-center text-fg font-pixel min-h-[1.25rem]">
+          class="w-4/5 max-w-[1200px] mx-auto mb-4 text-[0.65rem] text-center text-fg font-pixel min-h-[1.25rem]"
+          aria-live="polite">
+        </div>
+      </section>
+
+      <!-- Features Section for SEO -->
+      <section class="w-4/5 max-w-[1200px] mx-auto mt-12 mb-8">
+        <h2 class="text-lg mb-6 text-center text-accent">Why Choose 8-Bit Composer?</h2>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 text-[0.7rem] leading-relaxed">
+          <article class="bg-control border-2 border-cell-border p-4 rounded">
+            <h3 class="text-accent mb-2">🎵 Easy to Use</h3>
+            <p>Intuitive grid-based interface makes creating chiptune music accessible to everyone, from beginners to professionals.</p>
+          </article>
+          <article class="bg-control border-2 border-cell-border p-4 rounded">
+            <h3 class="text-accent mb-2">🤖 AI-Powered</h3>
+            <p>Generate unique 8-bit compositions using AI. Describe your vision and let our algorithm create the perfect retro soundtrack.</p>
+          </article>
+          <article class="bg-control border-2 border-cell-border p-4 rounded">
+            <h3 class="text-accent mb-2">💾 Export & Share</h3>
+            <p>Download your creations as high-quality WAV files or share them instantly with a unique link. Perfect for game development.</p>
+          </article>
+          <article class="bg-control border-2 border-cell-border p-4 rounded">
+            <h3 class="text-accent mb-2">🎮 Authentic Sound</h3>
+            <p>Recreate the classic 8-bit sound of NES, Game Boy, and other retro gaming consoles with authentic waveforms and filters.</p>
+          </article>
+          <article class="bg-control border-2 border-cell-border p-4 rounded">
+            <h3 class="text-accent mb-2">⚡ Browser-Based</h3>
+            <p>No downloads or installations required. Create music directly in your web browser on any device, anywhere.</p>
+          </article>
+          <article class="bg-control border-2 border-cell-border p-4 rounded">
+            <h3 class="text-accent mb-2">🆓 Free to Use</h3>
+            <p>Create, edit, export, and share your compositions for free. AI generation features available with affordable credit system. No watermarks on your music.</p>
+          </article>
         </div>
       </section>
     </main>
 
     <!-- Help Modal -->
-      <aside 
-        id="help-modal"
-        class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50"
-      >
-        <div class="bg-control border-4 border-accent text-fg font-pixel p-6 rounded-lg w-[90%] max-w-lg relative shadow-lg">
-          <!-- Close Button -->
-          <button
-            id="close-help"
-            class="absolute top-3 right-4 text-fg text-xl hover:text-accent"
-            title="Close"
-          >
-            &times;
-          </button>
+    <aside 
+      id="help-modal"
+      class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50"
+      role="dialog"
+      aria-labelledby="help-modal-title"
+      aria-modal="true"
+    >
+      <div class="bg-control border-4 border-accent text-fg font-pixel p-6 rounded-lg w-[90%] max-w-lg relative shadow-lg">
+        <button
+          id="close-help"
+          class="absolute top-3 right-4 text-fg text-xl hover:text-accent"
+          aria-label="Close help modal"
+        >
+          &times;
+        </button>
 
-          <!-- Modal Title -->
-          <h2 class="text-base tracking-wide mb-4 text-center">🕹️ How to Use 8-Bit Composer</h2>
+        <h2 id="help-modal-title" class="text-base tracking-wide mb-4 text-center">🕹️ How to Use 8-Bit Composer</h2>
 
-          <!-- Instructions List -->
-          <ul class="space-y-2 text-[0.65rem] leading-snug list-disc pl-5">
-            <li><strong>Click grid cells</strong> to toggle notes on/off.</li>
-            <li><strong>Right-click a note</strong> to edit pitch.</li>
-            <li><strong>Use instrument dropdowns and sliders</strong> to customize each row.</li>
-            <li><strong>Click “Generate”</strong> to use AI to create music from your prompt.</li>
-            <li><strong>AI is iterative:</strong> It modifies your current composition based on your prompt.</li>
-            <li><strong>Click “Fresh Slate”</strong> before generating to start from scratch.</li>
-            <li><strong>Click “Export to WAV”</strong> to save your composition locally.</li>
-          </ul>
-        </div>
-      </aside>
+        <ul class="space-y-2 text-[0.65rem] leading-snug list-disc pl-5">
+          <li><strong>Click grid cells</strong> to toggle notes on/off.</li>
+          <li><strong>Right-click a note</strong> to edit pitch.</li>
+          <li><strong>Use instrument dropdowns and sliders</strong> to customize each row.</li>
+          <li><strong>Click "Generate"</strong> to use AI to create music from your prompt.</li>
+          <li><strong>AI is iterative:</strong> It modifies your current composition based on your prompt.</li>
+          <li><strong>Click "Fresh Slate"</strong> before generating to start from scratch.</li>
+          <li><strong>Click "Export to WAV"</strong> to save your composition locally.</li>
+        </ul>
+      </div>
+    </aside>
 
-      <footer class="text-center mt-8">
-        <p class="text-[0.6rem] mt-2 text-fg font-pixel">
-          <div id="donate-container">
-            <span>Help me keep 8 Bit Composer alive by donating below:</span>
-            <div id="donate-button-container">
-              <div id="donate-button"></div>
-            </div>
-          </div>
-        </p>
-        <p class="text-[0.6rem] mt-2 text-fg font-pixel add-margin-top">
-          <br />
-          <br />
-          <br />
-          <br />
-          <br />
-          Powered by pixels and patterns <br />
-          Crafted with love by <a href='https://doriansmith.dev' target="_blank" style="text-decoration: underline;"> Dorian Smith </a>
-          <p class="copyright-text">
-            <span id="copyright-year" class="add-margin-top" style="font-weight:bold;"></span> &copy; All bleeps and bloops reserved.
-          </p>
-        </p>
-      </footer>
+    <footer class="text-center mt-12 border-t-2 border-cell-border pt-8">
+      <p class="text-[0.6rem] mt-2 text-fg font-pixel">
+        Powered by pixels and patterns <br />
+        Crafted with love by <a href='https://doriansmith.dev' target="_blank" rel="noopener" class="underline hover:text-accent"> Dorian Smith </a>
+      </p>
+      <p class="copyright-text text-[0.6rem] mt-2 text-fg font-pixel">
+        <span id="copyright-year" style="font-weight:bold;"></span> &copy; All bleeps and bloops reserved.
+      </p>
+    </footer>
       
-      <!-- used to generate year range in footer -->
-      <script>
-        document.getElementById("copyright-year").textContent = `${new Date().getFullYear()}`;
-      </script>
+    <!-- Scripts -->
+    <script>
+      document.getElementById("copyright-year").textContent = `${new Date().getFullYear()}`;
+    </script>
 
-
-    <!-- Help Modal JS-->
     <script>
       document.getElementById("help-btn").addEventListener("click", () => {
         document.getElementById("help-modal").classList.remove("hidden");
+        document.getElementById("help-modal").focus();
       });
 
       document.getElementById("close-help").addEventListener("click", () => {
@@ -253,31 +325,15 @@
       });
     </script>
 
-    <!-- Tone.js & Your Script -->
     <script src="https://cdn.jsdelivr.net/npm/tone@latest/build/Tone.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.0/lame.min.js"></script>
-    <!-- Main App JS -->
     <script type="module" src="/js/app.js"></script>
-    <!-- Donate button because why not? -->
-    <div id="donate-button-container">
-      <div id="donate-button"></div>
-      <script src="https://www.paypalobjects.com/donate/sdk/donate-sdk.js" charset="UTF-8"></script>
-      <script>
-        PayPal.Donation.Button({
-          env:'production',
-          hosted_button_id:'SK8LSFEWA8HLQ',
-          image: {
-          src:'https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif',
-          alt:'Donate with PayPal button',
-          title:'PayPal - The safer, easier way to pay online!',
-        }
-        }).render('#donate-button');
-      </script>
-      <script type="module">
-      import jwtDecode from 'https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.esm.js';
+    
+    <script type="module">
+      import jwtDecode from 'https://cdn.jsdelivr.net/npm/jwt-decode@4.0.0/build/esm/index.js';
 
       function getTokenFromUrl() {
-        const hash = window.location.hash.substring(1); // remove #
+        const hash = window.location.hash.substring(1);
         const params = new URLSearchParams(hash);
         return {
           idToken: params.get('id_token'),
@@ -288,19 +344,12 @@
       const { idToken } = getTokenFromUrl();
 
       if (idToken) {
-        // Save to localStorage
         localStorage.setItem('idToken', idToken);
-
-        // Optional: decode and show name
         const decoded = jwtDecode(idToken);
         const name = decoded.given_name || decoded.name || decoded.email || 'User';
         console.log('Signed in as:', name);
-
-        // Remove token from URL
         window.history.replaceState({}, document.title, window.location.pathname);
       }
     </script>
-
-    </div>
   </body>
 </html>

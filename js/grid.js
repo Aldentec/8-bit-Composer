@@ -1,4 +1,3 @@
-
 // Sequencer dimensions and state
 export let STEPS       = 16;
 export let CHANNELS    = 0;
@@ -15,6 +14,15 @@ let isDragging    = false,
     dragEnd       = null,
     dragOccurred  = false;
 
+// Mobile touch support variables
+let longPressTimer = null;
+let longPressActive = false;
+let touchStartPos = null;
+let lastTap = 0;
+const LONG_PRESS_DURATION = 600; // milliseconds
+const TOUCH_MOVE_THRESHOLD = 10; // pixels
+const DOUBLE_TAP_DELAY = 500; // milliseconds
+
 /** All possible instruments */
 export const INSTRUMENT_OPTIONS = [
   'square','triangle','sawtooth','pulse25','pulse50','pulse75',
@@ -23,6 +31,151 @@ export const INSTRUMENT_OPTIONS = [
   'drum-kick','drum-snare','drum-tom','drum-hat',
   'pluck','duosynth','sampler'
 ];
+
+// Add mobile-friendly CSS styles
+function addMobileGridStyles() {
+  const style = document.createElement('style');
+  style.textContent = `
+    .cell.long-press-active {
+      background-color: var(--accent) !important;
+      color: var(--bg) !important;
+      transform: scale(1.1);
+      transition: all 0.1s ease;
+    }
+
+    .cell {
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    .notes-wrapper {
+      touch-action: manipulation;
+    }
+
+    @media (max-width: 768px) {
+      .cell {
+        min-width: 40px;
+        min-height: 40px;
+        font-size: 0.6rem;
+      }
+      
+      .notes-wrapper {
+        gap: 2px;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+// Clear long press state
+function clearLongPress(cell) {
+  if (longPressTimer) {
+    clearTimeout(longPressTimer);
+    longPressTimer = null;
+  }
+  cell.classList.remove('long-press-active');
+  longPressActive = false;
+  touchStartPos = null;
+}
+
+// Open note editor (mobile-friendly prompt)
+function openNoteEditor(cell, row, step) {
+  const currentNote = noteState[row][step] || 'C4';
+  
+  const newNote = prompt(
+    `🎵 Edit Note (Row ${row + 1}, Step ${step + 1})\n\nExamples: C4, D#5, F3, A2\n\nCurrent note:`, 
+    currentNote
+  );
+  
+  if (newNote && newNote.trim()) {
+    noteState[row][step] = newNote.trim();
+    if (gridState[row][step]) {
+      cell.textContent = newNote.trim();
+    }
+    
+    // Dispatch event for any listeners
+    document.dispatchEvent(new CustomEvent('noteChanged', {
+      detail: { row, step, note: newNote.trim() }
+    }));
+  }
+}
+
+// Add mobile-friendly touch events to each cell
+function addMobileTouchEvents(cell, row, step) {
+  // Long press detection
+  cell.addEventListener('touchstart', (e) => {
+    // Store starting position to detect movement
+    touchStartPos = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY
+    };
+    
+    longPressActive = false;
+    
+    // Start long press timer
+    longPressTimer = setTimeout(() => {
+      longPressActive = true;
+      
+      // Add visual feedback
+      cell.classList.add('long-press-active');
+      
+      // Trigger haptic feedback if available
+      if (navigator.vibrate) {
+        navigator.vibrate(50);
+      }
+      
+      // Open note editor after brief visual feedback
+      setTimeout(() => {
+        cell.classList.remove('long-press-active');
+        openNoteEditor(cell, row, step);
+      }, 100);
+      
+    }, LONG_PRESS_DURATION);
+  });
+
+  cell.addEventListener('touchmove', (e) => {
+    if (!touchStartPos) return;
+    
+    // Calculate distance moved
+    const deltaX = Math.abs(e.touches[0].clientX - touchStartPos.x);
+    const deltaY = Math.abs(e.touches[0].clientY - touchStartPos.y);
+    
+    // If user moved finger too much, cancel long press
+    if (deltaX > TOUCH_MOVE_THRESHOLD || deltaY > TOUCH_MOVE_THRESHOLD) {
+      clearLongPress(cell);
+    }
+  });
+
+  cell.addEventListener('touchend', (e) => {
+    // Prevent click event if long press was triggered
+    if (longPressActive) {
+      e.preventDefault();
+      e.stopPropagation();
+      clearLongPress(cell);
+      return;
+    }
+    
+    // Double tap detection
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTap;
+    
+    // Double tap detected (between 100-500ms)
+    if (tapLength < DOUBLE_TAP_DELAY && tapLength > 100) {
+      e.preventDefault();
+      e.stopPropagation();
+      openNoteEditor(cell, row, step);
+      clearLongPress(cell);
+      return;
+    }
+    
+    lastTap = currentTime;
+    clearLongPress(cell);
+  });
+
+  cell.addEventListener('touchcancel', () => {
+    clearLongPress(cell);
+  });
+}
 
 export function initGrid(containerId, instrumentTypes = [], steps = 16) {
   const oldG = gridState, oldN = noteState, oldV = volumeState;
@@ -46,6 +199,12 @@ export function initGrid(containerId, instrumentTypes = [], steps = 16) {
 
   const container = document.getElementById(containerId);
   container.innerHTML = '';
+
+  // Add mobile styles if not already added
+  if (!document.querySelector('style[data-mobile-grid]')) {
+    addMobileGridStyles();
+    document.querySelector('style:last-of-type').setAttribute('data-mobile-grid', 'true');
+  }
 
   document.addEventListener('mouseup', () => {
     if (isDragging && dragOccurred) {
@@ -133,6 +292,7 @@ export function initGrid(containerId, instrumentTypes = [], steps = 16) {
         cell.textContent = noteState[row][step];
       }
 
+      // Mouse events (existing functionality)
       cell.addEventListener('mousedown', () => {
         isDragging = true;
         dragRow = row;
@@ -163,6 +323,11 @@ export function initGrid(containerId, instrumentTypes = [], steps = 16) {
       });
 
       cell.addEventListener('click', () => {
+        // Don't process click if it was a long press or double tap
+        if (longPressActive) {
+          return;
+        }
+
         if (!dragOccurred) {
           const on = gridState[row][step];
           gridState[row][step] = !on;
@@ -184,15 +349,14 @@ export function initGrid(containerId, instrumentTypes = [], steps = 16) {
         }
       });
 
+      // Right-click for desktop (existing functionality)
       cell.addEventListener('contextmenu', e => {
         e.preventDefault();
-        const curr = noteState[row][step];
-        const nn = prompt('Enter note (e.g. C4, A#3):', curr);
-        if (nn) {
-          noteState[row][step] = nn;
-          if (gridState[row][step]) cell.textContent = nn;
-        }
+        openNoteEditor(cell, row, step);
       });
+
+      // Add mobile touch events
+      addMobileTouchEvents(cell, row, step);
 
       notesWrapper.append(cell);
     }
@@ -282,7 +446,7 @@ export function clearGrid() {
   gridState.forEach(r => r.fill(false));
   document.querySelectorAll('.cell')
     .forEach(c => {
-      c.classList.remove('active','connected-left','connected-right');
+      c.classList.remove('active','connected-left','connected-right','long-press-active');
       c.textContent = '';
     });
 }

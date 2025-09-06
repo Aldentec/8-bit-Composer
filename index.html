@@ -30,6 +30,29 @@
     <meta name="twitter:image" content="https://s3.us-west-2.amazonaws.com/www.8bitcomposer.com/logo.png" />
     <meta name="twitter:creator" content="@yourtwitterhandle" />
 
+    <!-- Robots directive -->
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- Language -->
+    <meta http-equiv="Content-Language" content="en-US">
+
+    <!-- Theme color for mobile browsers -->
+    <meta name="theme-color" content="#0f0">
+
+    <!-- Preconnect to external domains for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://s3.us-west-2.amazonaws.com">
+
+    <!-- Resource hints -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//s3.us-west-2.amazonaws.com">
+
+    <!-- Optimize loading of critical resources -->
+    <link rel="preload" href="/style.css" as="style">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" as="style">
+
     <!-- Favicon and App Icons -->
     <link rel="icon" type="image/png" href="https://s3.us-west-2.amazonaws.com/www.8bitcomposer.com/logo.png" sizes="32x32" />
     <link rel="apple-touch-icon" href="https://s3.us-west-2.amazonaws.com/www.8bitcomposer.com/logo.png" />
@@ -41,34 +64,38 @@
 
     <!-- Structured Data (JSON-LD) -->
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "8-Bit Composer",
-      "description": "Free online chiptune music maker and sequencer for creating retro 8-bit style music",
-      "url": "https://www.8bitcomposer.com/",
-      "applicationCategory": "MusicApplication",
-      "operatingSystem": "Web Browser",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD"
-      },
-      "creator": {
-        "@type": "Person",
-        "name": "Dorian Smith",
-        "url": "https://doriansmith.dev"
-      },
-      "featureList": [
-        "Drag and drop sequencer",
-        "Multiple 8-bit instruments",
-        "WAV export functionality",
-        "Composition sharing",
-        "Real-time playback",
-        "Loop and tempo controls"
-      ]
-    }
-    </script>
+      {
+        "@context": "https://schema.org",
+        "@type": ["WebApplication", "CreativeWork"],
+        "name": "8-Bit Composer",
+        "description": "Free online chiptune music maker and sequencer for creating retro 8-bit style music",
+        "url": "https://www.8bitcomposer.com/",
+        "applicationCategory": ["MusicApplication", "EntertainmentApplication"],
+        "operatingSystem": "Web Browser",
+        "browserRequirements": "Requires JavaScript and Web Audio API support",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "creator": {
+          "@type": "Person",
+          "name": "Dorian Smith",
+          "url": "https://doriansmith.dev"
+        },
+        "featureList": [
+          "AI-powered melody generation",
+          "Drag and drop sequencer",
+          "Multiple 8-bit instruments", 
+          "WAV export functionality",
+          "Real-time playback",
+          "Cloud saving and sharing"
+        ],
+        "keywords": ["8-bit music", "chiptune", "music sequencer", "retro gaming", "music production"],
+        "inLanguage": "en-US",
+        "isAccessibleForFree": true
+      }
+      </script>
 
     <!-- Tailwind setup -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -103,10 +130,8 @@
       gtag('config', 'G-3DLZRJN22L');
     </script>
 
-    <!-- Google Ads -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7267090092112889" crossorigin="anonymous"></script>
-  </head>
-
+  </head> 
+  
   <body class="bg-bg text-fg font-pixel p-4">
     <!-- Skip Navigation for Accessibility -->
     <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 bg-accent text-bg p-2">Skip to main content</a>

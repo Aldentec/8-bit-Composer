@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Sitemap: https://8bitcomposer.com/sitemap.xml
+
+# Block unnecessary crawling
+Disallow: /js/
+Disallow: /node_modules/
+Disallow: /*.json$

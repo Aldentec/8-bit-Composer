@@ -1,6 +1,7 @@
 // audioExport.js
 import { createVoices }  from './voices.js';
 import { initSequencer } from './sequencer.js';
+import { trackActivity } from './analytics.js';
 const Tone = window.Tone;
 
 /**
@@ -55,6 +56,11 @@ export function exportAudio({
           a.href    = url;
           a.download= `${lastGeneratedTitle || 'composition'}.wav`;
           a.click();
+
+           await trackActivity('export', { 
+            format: 'wav',
+            length: STEPS // or however you track composition length
+        });
 
           resolve();
         } catch (err) {

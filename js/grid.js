@@ -1,3 +1,5 @@
+import { trackActivity } from './analytics.js';
+
 // Sequencer dimensions and state
 export let STEPS       = 16;
 export let CHANNELS    = 0;
@@ -31,6 +33,8 @@ export const INSTRUMENT_OPTIONS = [
   'drum-kick','drum-snare','drum-tom','drum-hat',
   'pluck','duosynth','sampler'
 ];
+
+let lastManualTrackTime = 0;
 
 // Add mobile-friendly CSS styles
 function addMobileGridStyles() {
@@ -346,6 +350,12 @@ export function initGrid(containerId, instrumentTypes = [], steps = 16) {
           document.dispatchEvent(new CustomEvent('cellToggled', {
             detail: { row, step, active: gridState[row][step], pitch: noteState[row][step] }
           }));
+
+          const now = Date.now();
+          if (now - lastManualTrackTime > 60000) { // Only track once per minute
+              trackActivity('manual_compose').catch(console.error);
+              lastManualTrackTime = now;
+          }
         }
       });
 

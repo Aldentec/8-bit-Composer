@@ -11,6 +11,7 @@ import { getControls, initControls } from './controls.js';
 import { initPlayback }    from './playback.js';
 import { initGenerate }    from './generate.js';
 import { saveComposition, loadComposition, clearComposition } from './storage.js';
+import { trackActivity } from './analytics.js';
 import { signInWithGoogle, signOut, parseTokenFromUrl, isLoggedIn } from './auth/auth.js';
 // Import credit system
 import { CreditManager, showCreditPurchaseModal, updateCreditDisplay } from './credits.js';
@@ -261,7 +262,7 @@ function setupAuth() {
                 console.log('🔧 Found idToken but no accessToken, copying idToken to accessToken');
                 localStorage.setItem('accessToken', storedToken);
                 accessToken = storedToken;
-            }
+            }``
             
             const isSignedIn = !!storedToken;
 
@@ -403,6 +404,7 @@ function setupAuth() {
 
         // Update UI based on current auth state
         updateAuthUI();
+        checkAdminStatus(); 
 
         // Return functions for external use
         return {
@@ -410,6 +412,30 @@ function setupAuth() {
             loadUserCredits
         };
     }); // End of waitForElements callback
+}
+
+async function checkAdminStatus() {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+    
+    try {
+        // Replace with your actual analytics API URL
+        const response = await fetch('YOUR_ANALYTICS_API_URL/analytics?timeRange=24h', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            // User is admin, show admin link
+            const adminLink = document.getElementById('admin-link');
+            if (adminLink) {
+                adminLink.classList.remove('hidden');
+            }
+        }
+    } catch (error) {
+        console.log('Not an admin user');
+    }
 }
 
 // Make getCurrentComposition available globally for generate.js

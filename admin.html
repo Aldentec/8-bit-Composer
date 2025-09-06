@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Analytics - 8-Bit Composer</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #080808;
+            color: #0f0;
+            font-family: 'Press Start 2P', monospace;
+        }
+        .stat-card {
+            background-color: #222;
+            border: 2px solid #0f0;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+        .loading {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .tab-active {
+            background-color: #0f0;
+            color: #080808;
+        }
+        .scrollbar-custom::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .scrollbar-custom::-webkit-scrollbar-track {
+            background: #222;
+        }
+        .scrollbar-custom::-webkit-scrollbar-thumb {
+            background: #0f0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4">
+    <!-- Navbar placeholder -->
+    <div id="navbar"></div>
+
+    <!-- Admin Check & Loading -->
+    <div id="loading-state" class="flex items-center justify-center min-h-screen">
+        <div class="text-center">
+            <div class="loading text-2xl mb-4">⚡</div>
+            <p class="text-sm">Verifying admin access...</p>
+        </div>
+    </div>
+
+    <!-- Access Denied -->
+    <div id="access-denied" class="hidden flex items-center justify-center min-h-screen">
+        <div class="text-center">
+            <div class="text-4xl mb-4">🚫</div>
+            <h1 class="text-xl mb-4">Access Denied</h1>
+            <p class="text-sm mb-6">Admin privileges required</p>
+            <a href="/" class="border-2 border-[#0f0] px-4 py-2 hover:bg-[#0f0] hover:text-black transition">
+                Return to Composer
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Analytics Dashboard -->
+    <div id="analytics-dashboard" class="hidden max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-2xl mb-4">📊 Analytics Dashboard</h1>
+            
+            <!-- Time Range Selector -->
+            <div class="flex gap-2 mb-6">
+                <button class="time-range-btn tab-active px-3 py-1 border-2 border-[#0f0] text-xs" data-range="24h">
+                    24H
+                </button>
+                <button class="time-range-btn px-3 py-1 border-2 border-[#0f0] text-xs hover:bg-[#0f0] hover:text-black transition" data-range="7d">
+                    7 Days
+                </button>
+                <button class="time-range-btn px-3 py-1 border-2 border-[#0f0] text-xs hover:bg-[#0f0] hover:text-black transition" data-range="30d">
+                    30 Days
+                </button>
+                <button class="time-range-btn px-3 py-1 border-2 border-[#0f0] text-xs hover:bg-[#0f0] hover:text-black transition" data-range="90d">
+                    90 Days
+                </button>
+                <button id="refresh-btn" class="ml-auto px-3 py-1 border-2 border-[#0f0] text-xs hover:bg-[#0f0] hover:text-black transition">
+                    🔄 Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- Summary Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="stat-card p-4 rounded">
+                <div class="text-xs text-gray-400 mb-2">Total Users</div>
+                <div class="text-2xl font-bold" id="stat-total-users">-</div>
+                <div class="text-xs text-gray-400 mt-1">
+                    <span id="stat-active-users">-</span> active
+                </div>
+            </div>
+            
+            <div class="stat-card p-4 rounded">
+                <div class="text-xs text-gray-400 mb-2">AI Generations</div>
+                <div class="text-2xl font-bold" id="stat-ai-generations">-</div>
+                <div class="text-xs text-gray-400 mt-1">
+                    Ratio: <span id="stat-ai-ratio">-</span>:1
+                </div>
+            </div>
+            
+            <div class="stat-card p-4 rounded">
+                <div class="text-xs text-gray-400 mb-2">Total Credits</div>
+                <div class="text-2xl font-bold" id="stat-total-credits">-</div>
+                <div class="text-xs text-gray-400 mt-1">
+                    Avg: <span id="stat-avg-credits">-</span>/user
+                </div>
+            </div>
+            
+            <div class="stat-card p-4 rounded">
+                <div class="text-xs text-gray-400 mb-2">Compositions</div>
+                <div class="text-2xl font-bold" id="stat-total-compositions">-</div>
+                <div class="text-xs text-gray-400 mt-1">
+                    <span id="stat-exports">-</span> exported
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="border-b-2 border-[#0f0] mb-6">
+            <div class="flex gap-4">
+                <button class="tab-btn tab-active px-4 py-2 text-xs" data-tab="overview">
+                    Overview
+                </button>
+                <button class="tab-btn px-4 py-2 text-xs hover:text-white" data-tab="users">
+                    Users
+                </button>
+                <button class="tab-btn px-4 py-2 text-xs hover:text-white" data-tab="prompts">
+                    AI Prompts
+                </button>
+                <button class="tab-btn px-4 py-2 text-xs hover:text-white" data-tab="activity">
+                    Activity Log
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab Content -->
+        <div id="tab-content">
+            <!-- Overview Tab -->
+            <div id="tab-overview" class="tab-panel">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Top Users by AI Usage -->
+                    <div class="stat-card p-4 rounded">
+                        <h3 class="text-sm mb-4 text-yellow-400">🏆 Top AI Users</h3>
+                        <div id="top-ai-users" class="space-y-2 text-xs">
+                            <div class="loading">Loading...</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Top Users by Activity -->
+                    <div class="stat-card p-4 rounded">
+                        <h3 class="text-sm mb-4 text-blue-400">⚡ Most Active Users</h3>
+                        <div id="top-active-users" class="space-y-2 text-xs">
+                            <div class="loading">Loading...</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Low Credit Warning -->
+                    <div class="stat-card p-4 rounded lg:col-span-2">
+                        <h3 class="text-sm mb-4 text-red-400">⚠️ Low Credit Users</h3>
+                        <div id="low-credit-users" class="text-xs">
+                            <div class="loading">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="tab-users" class="tab-panel hidden">
+                <div class="stat-card p-4 rounded overflow-x-auto">
+                    <table class="w-full text-xs">
+                        <thead>
+                            <tr class="border-b border-[#0f0]">
+                                <th class="text-left py-2">Email</th>
+                                <th class="text-center py-2">Credits</th>
+                                <th class="text-center py-2">AI Uses</th>
+                                <th class="text-center py-2">Manual</th>
+                                <th class="text-center py-2">Exports</th>
+                                <th class="text-left py-2">Last Active</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table" class="divide-y divide-gray-700">
+                            <tr><td colspan="6" class="text-center py-4 loading">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Prompts Tab -->
+            <div id="tab-prompts" class="tab-panel hidden">
+                <div class="stat-card p-4 rounded">
+                    <h3 class="text-sm mb-4">Recent AI Prompts</h3>
+                    <div id="prompts-list" class="space-y-3 text-xs max-h-96 overflow-y-auto scrollbar-custom">
+                        <div class="loading">Loading...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Tab -->
+            <div id="tab-activity" class="tab-panel hidden">
+                <div class="stat-card p-4 rounded">
+                    <h3 class="text-sm mb-4">Recent Activity</h3>
+                    <div id="activity-log" class="space-y-2 text-xs max-h-96 overflow-y-auto scrollbar-custom">
+                        <div class="loading">Loading...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/admin.js"></script>
+</body>
+</html>

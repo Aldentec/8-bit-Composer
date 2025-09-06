@@ -70,6 +70,11 @@ export function initGenerate(callback) {
       if (result && result.channels) {
         // Only deduct credit AFTER successful AI generation
         const remainingCredits = await creditManager.useCredit('generate');
+
+        await trackActivity('ai_generate', { 
+          prompt: prompt, 
+          mode: isEditing ? 'edit' : 'new' 
+      });
         
         // Apply the generated composition
         applyCompositionCallback(result);
